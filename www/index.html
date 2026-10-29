@@ -5,7 +5,7 @@
   <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no, viewport-fit=cover">
   <meta name="theme-color" content="#0b2a6b">
   <title>Parqués Parce</title>
-  <link rel="stylesheet" href="css/style.css?v=29">
+  <link rel="stylesheet" href="css/style.css?v=32">
 </head>
 <body>
 <div id="app">
@@ -34,9 +34,12 @@
     <div class="menu">
       <button class="btn big yellow" id="btnOffline">🤖 Jugar offline</button>
       <button class="btn big blue" id="btnOnline">👥 Jugar online</button>
-      <button class="btn red" data-go="scores">🏆 Puntajes</button>
-      <button class="btn purple" data-go="profile">👤 Perfil</button>
-      <button class="btn green" data-go="credits">ℹ️ Créditos</button>
+      <div class="menu-grid">
+        <button class="btn red" data-go="scores">🏆 Puntajes</button>
+        <button class="btn purple" data-go="profile">👤 Perfil</button>
+        <button class="btn blue" data-go="howto">❓ Cómo jugar</button>
+        <button class="btn green" data-go="credits">ℹ️ Créditos</button>
+      </div>
     </div>
   </section>
 
@@ -121,6 +124,22 @@
     </div>
   </section>
 
+  <!-- Cómo jugar -->
+  <section id="howto" class="screen">
+    <header class="top"><button class="icon" data-go="home">⬅️</button><h2>Cómo jugar</h2><span></span></header>
+    <ul class="rules">
+      <li><span class="ri">🎯</span><div><b>El objetivo</b>Lleva todas tus fichas a la casilla <b>FIN</b> por tu pasillo de color antes que los demás.</div></li>
+      <li><span class="ri">🎲</span><div><b>Dos dados</b>Lanza los dos dados. Cada dado mueve una ficha, la misma o distintas, y hay que usar los dos. Toca un dado y luego la ficha.</div></li>
+      <li><span class="ri">🔓</span><div><b>Salir de la cárcel</b>Solo con un <b>par</b> (dos dados iguales). Con <b>1-1</b> o <b>6-6</b> salen todas las fichas; con cualquier otro par salen <b>2</b>. Si no tienes fichas en juego, tienes <b>3 intentos</b> por turno.</div></li>
+      <li><span class="ri">🔁</span><div><b>Par = repites turno</b>Solo con un par vuelves a lanzar. Con <b>tres pares seguidos</b> sacas una ficha del juego: llega directo al FIN.</div></li>
+      <li><span class="ri">🍽️</span><div><b>Comer fichas</b>Si caes en una casilla con una ficha rival, la <b>comes</b> y vuelve a su cárcel.</div></li>
+      <li><span class="ri">🛡️</span><div><b>Seguros</b>En las casillas grises <b>SEGURO</b> y en la <b>SALIDA</b> no te pueden comer.</div></li>
+      <li><span class="ri">🏁</span><div><b>Llegar al FIN</b>Para entrar al FIN necesitas la tirada exacta: si te pasas, esa ficha no se mueve.</div></li>
+      <li><span class="ri">↩️</span><div><b>Sentido del juego</b>Las fichas avanzan en sentido contrario a las manecillas del reloj, y el turno pasa hacia la derecha.</div></li>
+    </ul>
+    <button class="btn big yellow" data-go="home">¡A jugar!</button>
+  </section>
+
   <!-- 5. CRÉDITOS -->
   <section id="credits" class="screen">
     <header class="top"><button class="icon" data-go="home">⬅️</button><h2>Créditos</h2><span></span></header>
@@ -137,17 +156,19 @@
 
 </div>
 
+<div id="rotate"><div class="rot-ico">📱</div><p>Gira tu celular a <b>vertical</b> para jugar</p></div>
 <div id="toast"></div>
 <div id="confetti"></div>
 <div id="modal" class="hidden"><div class="modal-card" id="modalCard"></div></div>
 
 <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-app-compat.js" onerror="this.remove()"></script>
 <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-database-compat.js" onerror="this.remove()"></script>
-<script src="js/firebase-config.js?v=29"></script>
-<script src="js/store.js?v=29"></script>
-<script src="js/audio.js?v=29"></script>
-<script src="js/engine.js?v=29"></script>
-<script src="js/online.js?v=29"></script>
-<script src="js/app.js?v=29"></script>
+<script src="js/firebase-config.js?v=32"></script>
+<script src="js/firebase-mock.js?v=32"></script>
+<script src="js/store.js?v=32"></script>
+<script src="js/audio.js?v=32"></script>
+<script src="js/engine.js?v=32"></script>
+<script src="js/online.js?v=32"></script>
+<script src="js/app.js?v=32"></script>
 </body>
 </html>

@@ -225,8 +225,9 @@
       placeCell(el, xy);
     }
     // Pasillo hacia el final (color fuerte) y casilla de meta con su rótulo FIN
-    LANES.forEach((cells, p) => cells.forEach(xy => placeCell(mk('cell lane', '', REGIONS[p].color), xy)));
-    GOALS.forEach((xy, p) => placeCell(mk('cell goal', lbl('FIN', p, ARM_OF[p] === 1 || ARM_OF[p] === 3), REGIONS[p].color), xy));
+    G.laneEls = [[], [], [], []];
+    LANES.forEach((cells, p) => cells.forEach(xy => { const el = mk('cell lane', '', REGIONS[p].color); G.laneEls[p].push(el); placeCell(el, xy); }));
+    GOALS.forEach((xy, p) => { const el = mk('cell goal', lbl('FIN', p, ARM_OF[p] === 1 || ARM_OF[p] === 3), REGIONS[p].color); G.laneEls[p].push(el); placeCell(el, xy); });
     place(mk('hat', '<img src="assets/img/sombrero.svg" alt="">'), 9.2, 9.75, 3.6, 2.5);
 
     G.tokenEls = [0, 1, 2, 3].map(p => Array.from({ length: G.s.n || 4 }, (_, i) => {
@@ -285,6 +286,8 @@
     G.tokenEls.forEach((arr, p) => arr.forEach((el, i) => el.classList.toggle('movable', p === s.turn && moves.includes(i))));
     G.tokenEls.forEach((arr, p) => arr.forEach(el => el.classList.toggle('turn', p === s.turn && s.winner < 0)));   // las fichas de quien juega brillan
     $('#board').classList.toggle('has-turn', s.winner < 0);
+    G.laneEls.forEach((arr, p) => arr.forEach(el => el.classList.toggle('lane-on', p === s.turn && s.winner < 0)));   // el pasillo de quien juega brilla
+    $('#msg').style.setProperty('--c', REGIONS[s.turn].color);
     s.players.forEach((pl, p) => {              // nombre, personaje y progreso en la esquina de cada jugador
       const j = G.jailEls[p];
       j.classList.toggle('active', s.turn === p && s.winner < 0);
@@ -309,7 +312,7 @@
     if (s.winner >= 0) return `🏆 Ganó ${s.players[s.winner].name}`;
     if (G.paused) return '⏸️ Juego en pausa';
     if (mine && s.phase === 'roll') {
-      if (Engine.boardCount(s, s.turn) === 0 && s.tries > 0) return `Sin fichas en juego: saca un par 🎲🎲 (intento ${4 - s.tries} de 3)`;
+      if (Engine.boardCount(s, s.turn) === 0 && s.tries > 0) return `Sin fichas: saca un par 🎲🎲 (intento ${4 - s.tries} de 3)`;
       return s.dbls > 0 ? '¡Par! Lanza otra vez 🎲🎲' : '¡Tu turno! Lanza los dados 🎲🎲';
     }
     if (mine && s.phase === 'bonus') return '🎉 ¡Tres pares! Toca una ficha para sacarla del juego';
@@ -621,6 +624,8 @@
 
   /* ---------- eventos ---------- */
   function init() {
+    // Orientación vertical fija (en la app Android se fija en el manifiesto; aquí se intenta también en el navegador)
+    try { if (screen.orientation && screen.orientation.lock) screen.orientation.lock('portrait').catch(() => {}); } catch (e) { /* no disponible */ }
     const toGo = e => { Sfx.unlock(); Sfx.play('click'); go(e.currentTarget.dataset.go); };
     $$('[data-go]').forEach(b => b.onclick = toGo);
 
