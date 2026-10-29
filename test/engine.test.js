@@ -49,8 +49,11 @@ const ev2 = E.apply(s, 1, 0, 2);
 assert.strictEqual(ev2.captured.length, 0, 'no se captura en casillas seguras');
 
 // meta exacta
-s = E.newState(players); s.tokens[0][0] = 72;
+s = E.newState(players); s.tokens[0][0] = E.GOAL - 2;
 assert.deepStrictEqual(E.legalMoves(s, 0, 3), [], 'no se pasa de la meta');
 assert.deepStrictEqual(E.legalMoves(s, 0, 2), [0]);
+
+// la última casilla del circuito es la punta del brazo propio (entrada al pasillo)
+E.MOUTHS.forEach((m, p) => assert.strictEqual(E.abs(p, E.LAST), m, 'la punta del brazo de ' + p));
 
 console.log('Todas las pruebas del motor pasaron ✔');

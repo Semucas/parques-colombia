@@ -228,3 +228,6 @@ input { width: 100%; font: inherit; font-size: 18px; padding: 12px 14px; border-
 .ptag .pe { font-size: 17px; }
 .ptag .pn { font-size: 10.5px; }
 .slot { border-width: 1.5px; }
+
+/* Fondo del tablero con motivos colombianos (se ve en las esquinas, alrededor de las cárceles) */
+.board { background: #fff1cf url('../assets/img/fondo-tablero.svg') center / 66px 66px; }

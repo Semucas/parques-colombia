@@ -1,15 +1,16 @@
 /* Motor del parqués: lógica pura, sin DOM. Lo usan el modo offline, los bots y el online. */
 const Engine = (() => {
   const TRACK = 68;                  // casillas del circuito
-  const STARTS = [10, 27, 44, 61];   // casilla de salida de cada jugador (índice absoluto)
-  const LAST = 66;                   // última casilla del circuito para cada jugador (posición relativa)
-  const GOAL = 74;                   // posición relativa de la meta (67..73 es el pasillo de llegada)
+  const STARTS = [13, 30, 47, 64];   // casilla SALIDA de cada jugador (índice absoluto): 5.ª casilla del brazo, en el lado de su cárcel
+  const LAST = 63;                   // última casilla del circuito (la punta de su brazo); después entra al pasillo
+  const GOAL = LAST + 8;             // posición relativa de la meta (LAST+1 .. LAST+7 es el pasillo de llegada)
   const MOUTHS = [8, 25, 42, 59];   // punta de cada brazo (entrada al pasillo): casilla "seguro"
-  const SAFE = new Set([...STARTS, ...MOUTHS]);
+  const SIDE_SAFES = [3, 20, 37, 54]; // 5.ª casilla del lado opuesto a la salida de cada brazo: también "seguro"
+  const SAFE = new Set([...STARTS, ...MOUTHS, ...SIDE_SAFES]);
 
   const abs = (p, r) => (STARTS[p] + r) % TRACK;
 
-  // r = -1 cárcel, 0..66 circuito, 67..73 pasillo, 74 meta
+  // r = -1 cárcel, 0..LAST circuito, LAST+1..LAST+7 pasillo, GOAL meta
   function newState(players) {
     return {
       tokens: [0, 1, 2, 3].map(() => [-1, -1, -1, -1]),
@@ -94,18 +95,18 @@ const Engine = (() => {
       if (ev.goal) score += 80;
       if (ev.exit) score += 60;
       if (level >= 3) {
-        if (r >= 67) score += 25;
+        if (r > LAST) score += 25;
         else if (SAFE.has(abs(p, r))) score += 30;
         else score -= danger(c, p, r) * 35;
         const before = s.tokens[p][i];
         if (before >= 0 && before <= LAST && !SAFE.has(abs(p, before))) score += danger(s, p, before) * 25;
-      } else if (r >= 67) score += 10;
+      } else if (r > LAST) score += 10;
       if (score > bestScore) { bestScore = score; best = i; }
     }
     return best;
   }
 
-  return { TRACK, STARTS, MOUTHS, LAST, GOAL, SAFE, abs, newState, legalMoves, roll, apply, pass, botChoose };
+  return { TRACK, STARTS, MOUTHS, SIDE_SAFES, LAST, GOAL, SAFE, abs, newState, legalMoves, roll, apply, pass, botChoose };
 })();
 
 if (typeof module !== 'undefined') module.exports = Engine;

@@ -177,10 +177,11 @@
     // Circuito: cada brazo se tiñe con el color de su dueño; SALIDA en la casilla de salida, SEGURO en la punta del brazo
     for (let a = 0; a < Engine.TRACK; a++) {
       const xy = trackXY(a), arm = Math.floor(a / 17), vertical = arm === 1 || arm === 3;
-      const sp = Engine.STARTS.indexOf(a), tip = Engine.MOUTHS.indexOf(a);
+      const sp = Engine.STARTS.indexOf(a), tip = Engine.MOUTHS.indexOf(a), sd = Engine.SIDE_SAFES.indexOf(a);
       let el;
       if (sp >= 0) el = mk('cell start', lbl('SALIDA', sp, vertical), REGIONS[sp].color);
       else if (tip >= 0) el = mk('cell start tip', lbl('SEGURO', tip, vertical), REGIONS[tip].color);
+      else if (sd >= 0) { const o = (sd + 3) % 4; el = mk('cell start tip', lbl('SEGURO', o, vertical), REGIONS[o].color); }   // color de la cárcel de ese lado
       else { el = mk('cell'); el.style.background = `linear-gradient(${TINTS[arm]}, ${TINTS[arm]}), #fff`; }
       placeCell(el, xy);
     }
@@ -199,7 +200,7 @@
 
   function centerOf(p, r, i) {
     if (r === -1) return [JAIL_C[p][0] + SLOTS[i][0], JAIL_C[p][1] + SLOTS[i][1]];
-    const xy = r <= Engine.LAST ? trackXY(Engine.abs(p, r)) : r < Engine.GOAL ? LANES[p][r - 67] : GOALS[p];
+    const xy = r <= Engine.LAST ? trackXY(Engine.abs(p, r)) : r < Engine.GOAL ? LANES[p][r - Engine.LAST - 1] : GOALS[p];
     const c = cellRect(xy[0], xy[1]);
     return [c.x + c.w / 2, c.y + c.h / 2];
   }
