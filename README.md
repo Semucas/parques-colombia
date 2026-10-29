@@ -56,6 +56,7 @@ Sube el `.aab` en Google Play Console (cuenta de desarrollador, ficha de tienda,
 - **Tres pares seguidos:** el jugador saca del juego una ficha, como si hubiera llegado a la casilla FIN, y pasa el turno.
 - Si caes en una casilla de otro jugador que no sea SEGURO (punta del brazo, SALIDA o el SEGURO lateral), **lo mandas a la cárcel**.
 - Para entrar a la meta se necesita la tirada exacta.
+- Empieza el jugador y el **turno pasa hacia la derecha** (en el sentido de las manecillas del reloj): por ejemplo, desde arriba a la izquierda sigue arriba a la derecha, luego abajo a la derecha y luego abajo a la izquierda.
 - Offline: botón ⏸️ para pausar (la partida también se pausa sola si sales de la app).
 
 ## Pendiente

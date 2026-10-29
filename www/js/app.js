@@ -475,7 +475,9 @@
     const bt = botTypes(3, [myType().emoji]);
     let bi = 0;
     const players = REGIONS.map((r, i) => { if (i === G.mySeat) return { type: 'human', name, emoji: myType().emoji }; const b = bt[bi++]; return { type: 'bot', name: 'Bot ' + b.name, emoji: b.emoji, level }; });
-    begin(Engine.newState(players, Store.d.tokens));
+    const st = Engine.newState(players, Store.d.tokens);
+    st.turn = G.mySeat;   // empieza el jugador; luego el turno sigue hacia la derecha (sentido de las manecillas del reloj)
+    begin(st);
   }
 
   function finishGame() {
