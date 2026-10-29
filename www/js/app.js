@@ -32,7 +32,7 @@
     [1, 2, 3, 4, 5, 6, 7].map(x => [x, 9])
   ];
   const ARM_GOALS = [[9, 8], [10, 9], [9, 10], [8, 9]];
-  const ARM_OF = [0, 1, 2, 3];                                   // brazo de cada jugador: Caribe arriba, Pacífico derecha, Andina abajo, Amazonía izquierda
+  const ARM_OF = [3, 0, 1, 2];                                   // brazo de cada jugador (pegado a su cárcel): Caribe izquierda, Pacífico arriba, Andina derecha, Amazonía abajo
   const LANES = ARM_OF.map(a => ARM_LANES[a]);
   const GOALS = ARM_OF.map(a => ARM_GOALS[a]);
   const JAILS = [[0, 14], [0, 0], [14, 0], [14, 14]];           // esquina de cada cárcel: Caribe abajo-izq., Pacífico arriba-izq., Andina arriba-der., Amazonía abajo-der. (8x8)
@@ -192,7 +192,7 @@
     }
     // Pasillo hacia el final (color fuerte) y casilla de meta con su rótulo FIN
     LANES.forEach((cells, p) => cells.forEach(xy => placeCell(mk('cell lane', '', REGIONS[p].color), xy)));
-    GOALS.forEach((xy, p) => placeCell(mk('cell goal', lbl('FIN', p, p === 1 || p === 3), REGIONS[p].color), xy));
+    GOALS.forEach((xy, p) => placeCell(mk('cell goal', lbl('FIN', p, ARM_OF[p] === 1 || ARM_OF[p] === 3), REGIONS[p].color), xy));
     place(mk('hat', '<img src="assets/img/sombrero.svg" alt="">'), 9.2, 9.75, 3.6, 2.5);
 
     G.tokenEls = [0, 1, 2, 3].map(p => Array.from({ length: G.s.n || 4 }, (_, i) => {

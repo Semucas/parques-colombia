@@ -150,7 +150,7 @@ input { width: 100%; font: inherit; font-size: 18px; padding: 12px 14px; border-
 .jail .je { position: relative; font-size: 22px; line-height: 1; }
 .jail b { position: relative; font-size: 9px; color: #fff; text-shadow: 0 1px 2px rgba(0,0,0,.6); }
 .jail.light b { color: #2b2300; text-shadow: none; }
-.center { background: conic-gradient(from 315deg, var(--p0) 0 25%, var(--p1) 0 50%, var(--p2) 0 75%, var(--p3) 0); border: 3px solid #fff; border-radius: 6px; }
+.center { background: conic-gradient(from 315deg, var(--p1) 0 25%, var(--p2) 0 50%, var(--p3) 0 75%, var(--p0) 0); border: 3px solid #fff; border-radius: 6px; }
 .plate { position: absolute; border-radius: 50%; background: rgba(255,255,255,.4); border: 3px dashed rgba(0,0,0,.25); }
 .hat { position: absolute; z-index: 2; pointer-events: none; display: flex; align-items: center; justify-content: center; }
 .hat img { width: 100%; height: 100%; object-fit: contain; filter: drop-shadow(0 2px 2px rgba(0,0,0,.45)); }
