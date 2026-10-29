@@ -22,21 +22,39 @@
     pass: ['Sin jugadas, ¡toca esperar!', 'Hoy no es el día, parce'],
     exit: ['¡Ficha pa\' la calle!', '¡Quiubo, a rodar!']
   };
-  const N = 18;
+  /* Tablero en cruz: cada brazo mide 3 casillas de ancho y 8 de largo. Las coordenadas (gx,gy) son de una cuadrícula
+     lógica de 19x19; al dibujar, las 3 filas/columnas centrales miden 2 unidades y el resto 1, así las casillas
+     quedan rectangulares (2x1) y caben los rótulos SALIDA / SEGURO / LLEGADA. Total: 22 unidades de lado.
+     Circuito de 68 casillas (17 por brazo: 8 + punta + 8). El carril del medio de cada brazo es el pasillo de llegada. */
+  const N = 22;
+  const unitStart = g => g <= 8 ? g : g <= 10 ? 8 + (g - 8) * 2 : 14 + (g - 11);
+  const unitSpan = g => g >= 8 && g <= 10 ? 2 : 1;
+  const cellRect = (gx, gy) => ({ x: unitStart(gx), y: unitStart(gy), w: unitSpan(gx), h: unitSpan(gy) });
   const LANES = [
-    [1, 2, 3, 4, 5, 6, 7].map(y => [8, y]),
-    [16, 15, 14, 13, 12, 11, 10].map(x => [x, 8]),
-    [16, 15, 14, 13, 12, 11, 10].map(y => [9, y]),
+    [1, 2, 3, 4, 5, 6, 7].map(y => [9, y]),
+    [17, 16, 15, 14, 13, 12, 11].map(x => [x, 9]),
+    [17, 16, 15, 14, 13, 12, 11].map(y => [9, y]),
     [1, 2, 3, 4, 5, 6, 7].map(x => [x, 9])
   ];
-  const GOALS = [[8, 8], [9, 8], [9, 9], [8, 9]];
-  const JAILS = [[10, 1], [10, 10], [1, 10], [1, 1]];          // esquina (x,y) de cada cárcel, 7x7
-  const SLOTS = [[-1, -0.6], [1, -0.6], [-1, 1.4], [1, 1.4]];  // posiciones de las 4 fichas en la cárcel
+  const GOALS = [[9, 8], [10, 9], [9, 10], [8, 9]];             // casilla de meta de cada jugador, alrededor del centro
+  const JAILS = [[14, 0], [14, 14], [0, 14], [0, 0]];          // esquina (en unidades) de cada cárcel, 8x8
+  const SLOTS = [[-1.2, -1.2], [1.2, -1.2], [-1.2, 1.2], [1.2, 1.2]];  // posiciones de las 4 fichas en la cárcel
+  const TINTS = ['rgba(252,209,22,.5)', 'rgba(30,111,224,.38)', 'rgba(224,49,70,.38)', 'rgba(34,177,98,.4)'];
 
-  const trackXY = a => a <= 16 ? [a, 0] : a <= 33 ? [17, a - 17] : a <= 50 ? [17 - (a - 34), 17] : [0, 17 - (a - 51)];
+  // Posición (x,y) de la casilla absoluta a (0..67), siguiendo el contorno de la cruz en sentido horario
+  function trackXY(a) {
+    const arm = Math.floor(a / 17), k = a % 17;   // k: 0..7 un lado, 8 punta, 9..16 el otro lado
+    switch (arm) {
+      case 0: return k <= 7 ? [8, 7 - k] : k === 8 ? [9, 0] : [10, k - 9];
+      case 1: return k <= 7 ? [11 + k, 8] : k === 8 ? [18, 9] : [27 - k, 10];
+      case 2: return k <= 7 ? [10, 11 + k] : k === 8 ? [9, 18] : [8, 27 - k];
+      default: return k <= 7 ? [7 - k, 10] : k === 8 ? [0, 9] : [k - 9, 8];
+    }
+  }
 
   const G = { s: null, mode: 'offline', mySeat: 0, level: 1, timers: [], active: false, stats: { captures: 0 },
-              fxSeq: -1, isHost: false, tokenEls: [], chipEls: [], lastResult: null, sixStreak: 0 };
+              fxSeq: -1, isHost: false, tokenEls: [], chipEls: [], lastResult: null, sixStreak: 0,
+              anim: null, animTimers: [], busyUntil: 0 };
 
   /* ---------- navegación y utilidades ---------- */
   function go(id) {
@@ -134,23 +152,34 @@
   function buildBoard() {
     const b = $('#board'); b.innerHTML = '';
     const pct = v => (v / N * 100) + '%';
-    const place = (el, x, y, w = 1, h = 1) => { el.style.left = pct(x); el.style.top = pct(y); if (w !== 1 || h !== 1) { el.style.width = pct(w); el.style.height = pct(h); } b.appendChild(el); };
+    const place = (el, x, y, w, h) => { el.style.left = pct(x); el.style.top = pct(y); el.style.width = pct(w); el.style.height = pct(h); b.appendChild(el); };
+    const placeCell = (el, [gx, gy]) => { const r = cellRect(gx, gy); place(el, r.x, r.y, r.w, r.h); };
+    // rótulo de la casilla; en los brazos izquierdo y derecho el texto va vertical
+    const lbl = (txt, p, vertical) => `<span class="lbl${vertical ? ' v' : ''}${REGIONS[p].light ? ' dark' : ''}">${txt}</span>`;
     const mk = (cls, html = '', c) => { const e = document.createElement('div'); e.className = cls; e.innerHTML = html; if (c) e.style.setProperty('--c', c); return e; };
 
+    // Esquinas: cárcel de cada región con su emoji/foto y un plato para las 4 fichas
     JAILS.forEach(([x, y], p) => {
       const r = REGIONS[p];
-      place(mk('jail' + (r.light ? ' light' : ''), `${regionImg(r)}<span class="je">${r.emoji}</span><b>${r.name}</b>`, r.color), x, y, 7, 7);
+      place(mk('jail' + (r.light ? ' light' : ''), `${regionImg(r)}<span class="je">${r.emoji}</span><b>${r.name}</b>`, r.color), x + .3, y + .3, 7.4, 7.4);
+      place(mk('plate'), x + 1, y + 1.8, 6, 6);
     });
+    // Centro: círculo de cielo con el sombrero vueltiao
+    place(mk('center'), 8, 8, 6, 6);
+    // Circuito: cada brazo se tiñe con el color de su dueño; SALIDA en la casilla de salida, SEGURO en la punta del brazo
     for (let a = 0; a < Engine.TRACK; a++) {
-      const [x, y] = trackXY(a);
-      const sp = Engine.STARTS.indexOf(a);
-      const safe = Engine.SAFE.has(a);
-      const el = mk('cell' + (sp >= 0 ? ' start' : safe ? ' safe' : ''), sp >= 0 ? REGIONS[sp].emoji : safe ? '⭐' : '', sp >= 0 ? REGIONS[sp].color : null);
-      place(el, x, y);
+      const xy = trackXY(a), arm = Math.floor(a / 17), vertical = arm === 1 || arm === 3;
+      const sp = Engine.STARTS.indexOf(a), tip = Engine.MOUTHS.indexOf(a);
+      let el;
+      if (sp >= 0) el = mk('cell start', lbl('SALIDA', sp, vertical), REGIONS[sp].color);
+      else if (tip >= 0) el = mk('cell start tip', lbl('SEGURO', tip, vertical), REGIONS[tip].color);
+      else { el = mk('cell'); el.style.background = `linear-gradient(${TINTS[arm]}, ${TINTS[arm]}), #fff`; }
+      placeCell(el, xy);
     }
-    LANES.forEach((cells, p) => cells.forEach(([x, y]) => place(mk('cell lane', '', REGIONS[p].color), x, y)));
-    GOALS.forEach(([x, y], p) => place(mk('cell goal', '', REGIONS[p].color), x, y));
-    place(mk('center', '🇨🇴'), 7.4, 7.4, 3.2, 3.2);
+    // Pasillo de llegada (color fuerte) y casilla de meta con su rótulo LLEGADA
+    LANES.forEach((cells, p) => cells.forEach(xy => placeCell(mk('cell lane', '', REGIONS[p].color), xy)));
+    GOALS.forEach((xy, p) => placeCell(mk('cell goal', lbl('LLEGADA', p, p === 1 || p === 3), REGIONS[p].color), xy));
+    place(mk('hat', '<img src="assets/img/sombrero.svg" alt="">'), 9.2, 9.75, 3.6, 2.5);
 
     G.tokenEls = [0, 1, 2, 3].map(p => [0, 1, 2, 3].map(i => {
       const t = mk('token'); t.style.setProperty('--c', REGIONS[p].color);
@@ -164,10 +193,10 @@
   }
 
   function centerOf(p, r, i) {
-    if (r === -1) { const [x, y] = JAILS[p]; return [x + 3.5 + SLOTS[i][0], y + 3.5 + SLOTS[i][1]]; }
-    if (r <= Engine.LAST) { const [x, y] = trackXY(Engine.abs(p, r)); return [x + .5, y + .5]; }
-    if (r < Engine.GOAL) { const [x, y] = LANES[p][r - 67]; return [x + .5, y + .5]; }
-    const [x, y] = GOALS[p]; return [x + .5, y + .5];
+    if (r === -1) { const [x, y] = JAILS[p]; return [x + 4 + SLOTS[i][0], y + 4.8 + SLOTS[i][1]]; }
+    const xy = r <= Engine.LAST ? trackXY(Engine.abs(p, r)) : r < Engine.GOAL ? LANES[p][r - 67] : GOALS[p];
+    const c = cellRect(xy[0], xy[1]);
+    return [c.x + c.w / 2, c.y + c.h / 2];
   }
 
   function buildDice() {
@@ -191,11 +220,10 @@
     Object.values(groups).forEach(g => g.forEach(([p, i, cx, cy, r], k) => {
       let ox = 0, oy = 0;
       if (g.length > 1 && r !== -1) { const ang = k / g.length * Math.PI * 2; ox = Math.cos(ang) * .22; oy = Math.sin(ang) * .22; }
-      const el = G.tokenEls[p][i];
-      el.style.left = ((cx + ox - .4) / N * 100) + '%';
-      el.style.top = ((cy + oy - .4) / N * 100) + '%';
+      if (G.anim && ((G.anim.p === p && G.anim.i === i) || G.anim.hold.has(p + ':' + i))) return;  // se mueven con la animación
+      setTokenPos(G.tokenEls[p][i], cx + ox, cy + oy);
     }));
-    const mine = isMine(s.turn) && s.winner < 0;
+    const mine = isMine(s.turn) && s.winner < 0 && !G.anim;
     const moves = mine && s.phase === 'move' ? Engine.legalMoves(s, s.turn, s.dice) : [];
     G.tokenEls.forEach((arr, p) => arr.forEach((el, i) => el.classList.toggle('movable', p === s.turn && moves.includes(i))));
     s.players.forEach((pl, p) => {
@@ -222,16 +250,50 @@
   const isActor = p => G.s.players[p].type === 'human' ? p === G.mySeat : (G.mode === 'offline' || G.isHost);
 
   function clearTimers() { G.timers.forEach(clearTimeout); G.timers = []; $('#tbar').style.transition = 'none'; $('#tbar').style.width = '100%'; }
+  // Espera ms y además lo que falte de la animación en curso, para que nada pase encima de otra cosa
   function later(fn, ms) {
     const seq = G.s.seq;
-    G.timers.push(setTimeout(() => { if (G.active && G.s && G.s.seq === seq) fn(); }, ms));
+    const wait = ms + Math.max(0, (G.busyUntil || 0) - Date.now());
+    G.timers.push(setTimeout(() => { if (G.active && G.s && G.s.seq === seq) fn(); }, wait));
   }
   function startTurnTimer(fn) {
     const secs = G.mode === 'online' ? 25 : LEVELS[G.level - 1].secs;
-    const bar = $('#tbar');
-    bar.style.transition = 'none'; bar.style.width = '100%'; void bar.offsetWidth;
-    bar.style.transition = `width ${secs}s linear`; bar.style.width = '0%';
-    later(fn, secs * 1000);
+    later(() => {                                  // el reloj del turno empieza cuando termina la animación
+      const bar = $('#tbar');
+      bar.style.transition = 'none'; bar.style.width = '100%'; void bar.offsetWidth;
+      bar.style.transition = `width ${secs}s linear`; bar.style.width = '0%';
+      later(fn, secs * 1000);
+    }, 0);
+  }
+
+  /* Ritmo del juego (ms): pausas para que el jugador vea lo que ocurre */
+  const PACE = { botRoll: 1300, botMove: 1500, single: 1100, pass: 1800, step: 240 };
+
+  // La ficha avanza casilla por casilla; las capturadas esperan a que llegue para irse a la cárcel
+  function setTokenPos(el, cx, cy) { el.style.left = ((cx - .43) / N * 100) + '%'; el.style.top = ((cy - .43) / N * 100) + '%'; }
+  function startMoveAnim(ev) {
+    const to = G.s.tokens[ev.p][ev.i];
+    const path = ev.exit ? [0] : Array.from({ length: ev.d }, (_, k) => to - ev.d + 1 + k);
+    const anim = G.anim = { p: ev.p, i: ev.i, hold: new Set(ev.captured.map(c => c.p + ':' + c.i)) };
+    G.busyUntil = Date.now() + path.length * PACE.step + 500;
+    G.animTimers.forEach(clearTimeout); G.animTimers = [];
+    path.forEach((r, k) => G.animTimers.push(setTimeout(() => {
+      if (G.anim !== anim) return;
+      const [cx, cy] = centerOf(ev.p, r, ev.i);
+      setTokenPos(G.tokenEls[ev.p][ev.i], cx, cy); Sfx.play('move');
+    }, k * PACE.step)));
+    G.animTimers.push(setTimeout(() => {
+      if (G.anim !== anim) return;
+      G.anim = null; render(); moveFx(ev);
+    }, path.length * PACE.step + 120));
+  }
+  function moveFx(ev) {
+    if (ev.captured.length) {
+      Sfx.play('capture'); toast(rnd(PHRASES.capture), 1800);
+      ev.captured.forEach(c => { const el = G.tokenEls[c.p][c.i]; el.classList.remove('hit'); void el.offsetWidth; el.classList.add('hit'); });
+    } else if (ev.goal) { Sfx.play('goal'); toast(rnd(PHRASES.goal), 1800); confetti(25); }
+    else if (ev.exit) { Sfx.play('exit'); toast(rnd(PHRASES.exit), 1500); }
+    if (ev.win) Sfx.play(ev.p === G.mySeat ? 'win' : 'lose');
   }
 
   function schedule() {
@@ -248,15 +310,15 @@
     const human = pl.type === 'human';
     const moves = s.phase === 'move' ? Engine.legalMoves(s, p, s.dice) : [];
     if (s.phase === 'roll') {
-      if (human) startTurnTimer(doRoll); else later(doRoll, 750);
+      if (human) startTurnTimer(doRoll); else later(doRoll, PACE.botRoll);
     } else if (!moves.length) {
-      later(doPass, 1000);
+      later(doPass, PACE.pass);
     } else if (moves.length === 1) {
-      later(() => doMove(moves[0]), human ? 600 : 800);
+      later(() => doMove(moves[0]), human ? PACE.single : PACE.botMove);
     } else if (human) {
       startTurnTimer(() => doMove(Engine.botChoose(s, p, s.dice, moves, 3)));
     } else {
-      later(() => doMove(Engine.botChoose(s, p, s.dice, moves, pl.level || G.level)), 850);
+      later(() => doMove(Engine.botChoose(s, p, s.dice, moves, pl.level || G.level)), PACE.botMove);
     }
   }
 
@@ -265,8 +327,10 @@
     onNewState();
   }
   function onNewState() {
+    const fresh = G.fxSeq !== G.s.seq;
+    if (fresh) { G.fxSeq = G.s.seq; if (G.s.last && G.s.last.kind === 'move') startMoveAnim(G.s.last); }
     render();
-    if (G.fxSeq !== G.s.seq) { G.fxSeq = G.s.seq; playFx(G.s.last); }
+    if (fresh) playFx(G.s.last);
     schedule();
   }
 
@@ -314,6 +378,7 @@
 
   /* ---------- inicio y fin de partida ---------- */
   function begin(state) {
+    G.animTimers.forEach(clearTimeout); G.animTimers = []; G.anim = null; G.busyUntil = 0;
     G.s = state; G.active = true; G.stats = { captures: 0 }; G.fxSeq = state.seq; G.sixStreak = 0; G.lastResult = null;
     buildBoard();
     $('#gameTitle').textContent = G.mode === 'offline' ? `Nivel ${G.level} · ${LEVELS[G.level - 1].name}` : `Sala ${Online.code}`;
@@ -345,7 +410,7 @@
     setTimeout(() => modal(
       `<div class="em">${won ? '🏆' : '😅'}</div><h3>${won ? '¡Ganaste, parce!' : 'Ganó ' + s.players[s.winner].name}</h3>
        <p><b>${pts}</b> puntos · ${G.stats.captures} capturas · ${goals}/4 fichas en meta</p>${extra}`,
-      [{ text: '🏆 Ver puntajes', cls: 'yellow', fn: () => { leaveRoom(); go('scores'); } }]), 900);
+      [{ text: '🏆 Ver puntajes', cls: 'yellow', fn: () => { leaveRoom(); go('scores'); } }]), 1600 + Math.max(0, G.busyUntil - Date.now()));
   }
 
   function leaveRoom() {

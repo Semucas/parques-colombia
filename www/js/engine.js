@@ -4,7 +4,8 @@ const Engine = (() => {
   const STARTS = [10, 27, 44, 61];   // casilla de salida de cada jugador (índice absoluto)
   const LAST = 66;                   // última casilla del circuito para cada jugador (posición relativa)
   const GOAL = 74;                   // posición relativa de la meta (67..73 es el pasillo de llegada)
-  const SAFE = new Set([...STARTS, ...STARTS.map(s => (s + 8) % TRACK)]);
+  const MOUTHS = [8, 25, 42, 59];   // punta de cada brazo (entrada al pasillo): casilla "seguro"
+  const SAFE = new Set([...STARTS, ...MOUTHS]);
 
   const abs = (p, r) => (STARTS[p] + r) % TRACK;
 
@@ -104,7 +105,7 @@ const Engine = (() => {
     return best;
   }
 
-  return { TRACK, STARTS, LAST, GOAL, SAFE, abs, newState, legalMoves, roll, apply, pass, botChoose };
+  return { TRACK, STARTS, MOUTHS, LAST, GOAL, SAFE, abs, newState, legalMoves, roll, apply, pass, botChoose };
 })();
 
 if (typeof module !== 'undefined') module.exports = Engine;

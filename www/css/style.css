@@ -137,12 +137,12 @@ input { width: 100%; font: inherit; font-size: 18px; padding: 12px 14px; border-
 .board-wrap { width: 100%; display: flex; justify-content: center; flex: 0 0 auto; }
 .board { position: relative; width: min(100%, 52vh); aspect-ratio: 1; background: #fff6dc; border-radius: 14px;
   border: 5px solid #5a3b17; box-shadow: 0 8px 0 rgba(0,0,0,.3); overflow: hidden; }
-.cell, .jail, .center, .token { position: absolute; }
-.cell { width: 5.5556%; height: 5.5556%; border: 1px solid rgba(0,0,0,.18); display: flex; align-items: center; justify-content: center;
+.cell, .jail, .center, .token, .plate { position: absolute; }
+.cell { overflow: hidden; border: 1px solid rgba(0,0,0,.18); display: flex; align-items: center; justify-content: center;
   font-size: 10px; background: #fff; }
 .cell.safe { background: #ffe9a8; }
 .cell.start { background: var(--c); }
-.cell.lane { background: var(--c); opacity: .75; }
+.cell.lane { background: var(--c); }
 .cell.goal { background: var(--c); border: 2px solid #fff; z-index: 1; }
 .jail { border-radius: 14px; background: var(--c); opacity: .92; overflow: hidden; display: flex; flex-direction: column;
   align-items: center; justify-content: flex-start; padding: 3px; border: 3px solid rgba(0,0,0,.25); }
@@ -150,11 +150,12 @@ input { width: 100%; font: inherit; font-size: 18px; padding: 12px 14px; border-
 .jail .je { position: relative; font-size: 22px; line-height: 1; }
 .jail b { position: relative; font-size: 9px; color: #fff; text-shadow: 0 1px 2px rgba(0,0,0,.6); }
 .jail.light b { color: #2b2300; text-shadow: none; }
-.center { border-radius: 10px; background: conic-gradient(var(--p0) 0 25%, var(--p1) 0 50%, var(--p2) 0 75%, var(--p3) 0);
-  display: flex; align-items: center; justify-content: center; font-size: 22px; border: 2px solid #fff; animation: spin 14s linear infinite; }
-@keyframes spin { to { transform: rotate(360deg); } }
+.center { border-radius: 50%; background: radial-gradient(circle at 50% 40%, #e4f3ff 0 35%, #9fd0f3 100%); border: 3px solid #fff; box-shadow: inset 0 0 12px rgba(30,111,224,.35); }
+.plate { position: absolute; border-radius: 50%; background: rgba(255,255,255,.4); border: 3px dashed rgba(0,0,0,.25); }
+.hat { position: absolute; z-index: 2; pointer-events: none; display: flex; align-items: center; justify-content: center; }
+.hat img { width: 100%; height: 100%; object-fit: contain; filter: drop-shadow(0 2px 2px rgba(0,0,0,.45)); }
 
-.token { width: 4.4%; height: 4.4%; border-radius: 50%; background: radial-gradient(circle at 35% 30%, #fff8 0 15%, var(--c) 40%);
+.token { width: 3.9%; height: 3.9%; border-radius: 50%; background: radial-gradient(circle at 35% 30%, #fff8 0 15%, var(--c) 40%);
   border: 2px solid rgba(0,0,0,.55); box-shadow: 0 2px 3px rgba(0,0,0,.45); z-index: 3;
   transition: left .35s cubic-bezier(.3,1.4,.5,1), top .35s cubic-bezier(.3,1.4,.5,1); }
 .token.movable { animation: pulse .7s infinite; cursor: pointer; z-index: 5; }
@@ -199,3 +200,11 @@ input { width: 100%; font: inherit; font-size: 18px; padding: 12px 14px; border-
 @keyframes fall { to { transform: translateY(110vh) rotate(720deg); } }
 
 @media (max-height: 700px) { .board { width: min(100%, 46vh); } .splash-logo h1 { font-size: 44px; } }
+
+/* Rótulos de las casillas: SALIDA, SEGURO, LLEGADA */
+.cell.start { border-color: rgba(0,0,0,.45); }
+.cell.goal { border-radius: 4px; }
+.lbl { font-size: 6.5px; font-weight: 900; letter-spacing: .3px; color: #fff; line-height: 1; white-space: nowrap; text-shadow: 0 1px 1px rgba(0,0,0,.55); pointer-events: none; }
+.lbl.v { writing-mode: vertical-rl; }
+.lbl.dark { color: #3a2f00; text-shadow: none; }
+.cell.goal .lbl { font-size: 6px; opacity: .9; }
