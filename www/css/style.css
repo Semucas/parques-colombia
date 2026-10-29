@@ -266,3 +266,9 @@ input { width: 100%; font: inherit; font-size: 18px; padding: 12px 14px; border-
 
 /* Bajar un poco el tablero y los dados (todo lo que va debajo del título) */
 #game .board-wrap { margin-top: 5vh; }
+
+/* Tablero más grande y un poco más alto; dados más abajo */
+#game { padding-left: 3px; padding-right: 3px; }
+.board { aspect-ratio: 1 / 1.12; width: min(100%, 58vh); }
+.token { height: calc(3.9% / 1.12); }
+#game .controls { margin-top: 3.5vh; }

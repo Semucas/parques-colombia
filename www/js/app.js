@@ -15,17 +15,12 @@
     { name: 'Rebusque',       desc: 'Bots pillos que cazan fichas · 18 s por turno', secs: 18 },
     { name: 'Capo del parqués', desc: 'Bots estrategas que esquivan riesgos · 12 s', secs: 12 }
   ];
-  const PHRASES = {
-    capture: ['¡Pa\' la cárcel, parce!', '¡Uy, qué vaina tan brava!', '¡Ay, qué pesar!', '¡Eche, no joda!'],
-    six: ['¡Qué suerte, mono!', '¡Eso, mi rey!', '¡Hágale pues!'],
-    goal: ['¡Qué chimba, a la meta!', '¡Ficha a salvo, parce!'],
-    pass: ['Sin jugadas, ¡toca esperar!', 'Hoy no es el día, parce']
-  };
   /* Tablero en cruz: cada brazo mide 3 casillas de ancho y 8 de largo. Las coordenadas (gx,gy) son de una cuadrícula
      lógica de 19x19; al dibujar, las 3 filas/columnas centrales miden 2 unidades y el resto 1, así las casillas
      quedan rectangulares (2x1) y caben los rótulos SALIDA / SEGURO / LLEGADA. Total: 22 unidades de lado.
      Circuito de 68 casillas (17 por brazo: 8 + punta + 8). El carril del medio de cada brazo es el pasillo de llegada. */
   const N = 22;
+  const ASPECT = 1.12;   // el tablero es un poco más alto que ancho (casillas más cómodas)
   const unitStart = g => g <= 8 ? g : g <= 10 ? 8 + (g - 8) * 2 : 14 + (g - 11);
   const unitSpan = g => g >= 8 && g <= 10 ? 2 : 1;
   const cellRect = (gx, gy) => ({ x: unitStart(gx), y: unitStart(gy), w: unitSpan(gx), h: unitSpan(gy) });
@@ -177,7 +172,7 @@
       const jail = mk('jail' + (r.light ? ' light' : ''),
         `${regionImg(r)}<div class="ptag ${top ? 'top' : 'bot'}"><span class="pe">${r.emoji}</span><b class="pn"></b></div>`, r.color);
       place(jail, jr.x, jr.y, JS, JS);
-      slotsOf().forEach(([dx, dy]) => place(mk('slot'), JAIL_C[p][0] + dx - .75, JAIL_C[p][1] + dy - .75, 1.5, 1.5));   // huecos de las 4 fichas
+      slotsOf().forEach(([dx, dy]) => place(mk('slot'), JAIL_C[p][0] + dx - .75, JAIL_C[p][1] + dy - .75 / ASPECT, 1.5, 1.5 / ASPECT));   // huecos de las 4 fichas
       G.jailEls[p] = jail;
     });
     // Centro: círculo de cielo con el sombrero vueltiao
@@ -271,7 +266,7 @@
     const s = G.s;
     if (s.winner >= 0) return `🏆 Ganó ${s.players[s.winner].name}`;
     if (G.paused) return '⏸️ Juego en pausa';
-    if (mine && s.phase === 'roll') return '¡Tu turno! Lanza los dados 🎲🎲';
+    if (mine && s.phase === 'roll') return s.dbls > 0 ? '¡Par! Lanza otra vez 🎲🎲' : '¡Tu turno! Lanza los dados 🎲🎲';
     if (mine && s.phase === 'bonus') return '🎉 ¡Tres pares! Toca una ficha para sacarla del juego';
     if (mine && s.phase === 'move') return ch.length > 1 ? 'Toca un dado y luego la ficha que quieres mover' : (moves.length ? 'Toca la ficha que quieres mover' : 'No tienes jugadas…');
     return `Turno de ${s.players[s.turn].name}…`;
@@ -302,7 +297,7 @@
   const PACE = { botRoll: 1300, botMove: 1500, single: 1100, pass: 1800, step: 240 };
 
   // La ficha avanza casilla por casilla; las capturadas esperan a que llegue para irse a la cárcel
-  function setTokenPos(el, cx, cy) { el.style.left = ((cx - .43) / N * 100) + '%'; el.style.top = ((cy - .43) / N * 100) + '%'; }
+  function setTokenPos(el, cx, cy) { el.style.left = ((cx - .43) / N * 100) + '%'; el.style.top = ((cy - .43 / ASPECT) / N * 100) + '%'; }
   function startMoveAnim(ev) {
     const to = G.s.tokens[ev.p][ev.i];
     const path = ev.exit ? [0] : ev.bonus ? [Engine.GOAL] : Array.from({ length: ev.d }, (_, k) => to - ev.d + 1 + k);
@@ -321,9 +316,9 @@
   }
   function moveFx(ev) {
     if (ev.captured.length) {
-      Sfx.play('capture'); toast(rnd(PHRASES.capture), 1800);
+      Sfx.play('capture');
       ev.captured.forEach(c => { const el = G.tokenEls[c.p][c.i]; el.classList.remove('hit'); void el.offsetWidth; el.classList.add('hit'); });
-    } else if (ev.goal) { Sfx.play('goal'); toast(rnd(PHRASES.goal), 1800); confetti(25); }
+    } else if (ev.goal) { Sfx.play('goal'); confetti(25); }
     else if (ev.exit) Sfx.play('exit');
     if (ev.win) Sfx.play(ev.p === G.mySeat ? 'win' : 'lose');
   }
@@ -395,20 +390,10 @@
     if (!ev) return;
     if (ev.kind === 'roll') {
       Sfx.play('roll'); animateDice(ev.d[0], ev.d[1]);
-      if (ev.triple) { Sfx.play('goal'); toast('🎉 ¡Tres pares seguidos! Sacas una ficha del juego', 2800); confetti(40); }
-      else if (ev.dbl) { Sfx.play('six'); toast('¡Par! ' + rnd(PHRASES.six) + ' Repites turno', 1800); }
+      if (ev.triple) { Sfx.play('goal'); confetti(40); }
+      else if (ev.dbl) Sfx.play('six');
       if (ev.d[0] === 6 && ev.d[1] === 6 && ev.p === G.mySeat) eggSixes();
-    } else if (ev.kind === 'move') {
-      if (ev.captured.length) {
-        Sfx.play('capture'); toast(rnd(PHRASES.capture));
-        ev.captured.forEach(c => { const el = G.tokenEls[c.p][c.i]; el.classList.remove('hit'); void el.offsetWidth; el.classList.add('hit'); });
-      } else if (ev.goal) { Sfx.play('goal'); toast(rnd(PHRASES.goal)); confetti(25); }
-      else if (ev.exit) Sfx.play('exit');
-      else Sfx.play('move');
-      if (ev.win) Sfx.play(ev.p === G.mySeat ? 'win' : 'lose');
-    } else if (ev.kind === 'pass') {
-      toast(rnd(PHRASES.pass), 1100);
-    }
+    }                                   // los movimientos suenan al terminar su animación (moveFx)
   }
 
   /* ---------- inicio y fin de partida ---------- */
@@ -421,7 +406,6 @@
     $('#gameTitle').textContent = G.mode === 'offline' ? `Nivel ${G.level} · ${LEVELS[G.level - 1].name}` : `Sala ${Online.code}`;
     go('game');
     Sfx.play('exit');
-    toast(`Juegas con ${REGIONS[G.mySeat].name} ${REGIONS[G.mySeat].emoji}`);
     render(); schedule();
   }
 
@@ -558,7 +542,7 @@
   }
 
   /* ---------- easter eggs ---------- */
-  function eggSixes() { toast('🎲🎲 ¡Doble seis! Hoy te quiere la Virgen', 2600); confetti(40); }
+  function eggSixes() { confetti(40); }   // easter egg: doble seis
   function party() {
     document.body.classList.toggle('fiesta');
     Sfx.play('party'); confetti(80);
