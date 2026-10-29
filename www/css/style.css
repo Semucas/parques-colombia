@@ -272,3 +272,7 @@ input { width: 100%; font: inherit; font-size: 18px; padding: 12px 14px; border-
 .board { aspect-ratio: 1 / 1.12; width: min(100%, 58vh); }
 .token { height: calc(3.9% / 1.12); }
 #game .controls { margin-top: 3.5vh; }
+
+/* Tablero sobrio: casillas blancas, seguros grises; el color solo en esquinas, salida, pasillo y fin */
+.cell.safe { background: #d6d6d6; }
+.cell.goal .lbl { font-size: 8.5px; letter-spacing: .6px; opacity: 1; }

@@ -51,7 +51,7 @@ Sube el `.aab` en Google Play Console (cuenta de desarrollador, ficha de tienda,
 - De 1 a 4 fichas por jugador (se elige al empezar) y **dos dados**. Cada dado se juega por separado con una ficha, y hay que usar los dos.
 - **Con un 5** en un dado sale una ficha de la cárcel, a su casilla SALIDA.
 - **El turno se repite solo si salen dos dados iguales (par).** Capturar o llegar a la meta no lo repiten.
-- **Tres pares seguidos:** el jugador saca del juego una ficha, como si hubiera llegado a la LLEGADA, y pasa el turno.
+- **Tres pares seguidos:** el jugador saca del juego una ficha, como si hubiera llegado a la casilla FIN, y pasa el turno.
 - Si caes en una casilla de otro jugador que no sea SEGURO (punta del brazo, SALIDA o el SEGURO lateral), **lo mandas a la cárcel**.
 - Para entrar a la meta se necesita la tirada exacta.
 - Offline: botón ⏸️ para pausar (la partida también se pausa sola si sales de la app).

@@ -17,7 +17,7 @@
   ];
   /* Tablero en cruz: cada brazo mide 3 casillas de ancho y 8 de largo. Las coordenadas (gx,gy) son de una cuadrícula
      lógica de 19x19; al dibujar, las 3 filas/columnas centrales miden 2 unidades y el resto 1, así las casillas
-     quedan rectangulares (2x1) y caben los rótulos SALIDA / SEGURO / LLEGADA. Total: 22 unidades de lado.
+     quedan rectangulares (2x1) y caben los rótulos SALIDA / SEGURO / FIN. Total: 22 unidades de lado.
      Circuito de 68 casillas (17 por brazo: 8 + punta + 8). El carril del medio de cada brazo es el pasillo de llegada. */
   const N = 22;
   const ASPECT = 1.12;   // el tablero es un poco más alto que ancho (casillas más cómodas)
@@ -162,7 +162,7 @@
     const place = (el, x, y, w, h) => { el.style.left = pct(x); el.style.top = pct(y); el.style.width = pct(w); el.style.height = pct(h); b.appendChild(el); };
     const placeCell = (el, [gx, gy]) => { const r = cellRect(gx, gy); place(el, r.x, r.y, r.w, r.h); };
     // rótulo de la casilla; en los brazos izquierdo y derecho el texto va vertical
-    const lbl = (txt, p, vertical) => `<span class="lbl${vertical ? ' v' : ''}${REGIONS[p].light ? ' dark' : ''}">${txt}</span>`;
+    const lbl = (txt, p, vertical, dark) => `<span class="lbl${vertical ? ' v' : ''}${dark || REGIONS[p].light ? ' dark' : ''}">${txt}</span>`;
     const mk = (cls, html = '', c) => { const e = document.createElement('div'); e.className = cls; e.innerHTML = html; if (c) e.style.setProperty('--c', c); return e; };
 
     // Esquinas: cárcel de cada región con su emoji/foto y un plato para las 4 fichas
@@ -183,14 +183,13 @@
       const sp = Engine.STARTS.indexOf(a), tip = Engine.MOUTHS.indexOf(a), sd = Engine.SIDE_SAFES.indexOf(a);
       let el;
       if (sp >= 0) el = mk('cell start', lbl('SALIDA', sp, vertical), REGIONS[sp].color);
-      else if (tip >= 0) el = mk('cell start tip', lbl('SEGURO', tip, vertical), REGIONS[tip].color);
-      else if (sd >= 0) { const o = (sd + 3) % 4; el = mk('cell start tip', lbl('SEGURO', o, vertical), REGIONS[o].color); }   // color de la cárcel de ese lado
-      else { el = mk('cell'); el.style.background = `linear-gradient(${TINTS[arm]}, ${TINTS[arm]}), #fff`; }
+      else if (tip >= 0 || sd >= 0) el = mk('cell safe', lbl('SEGURO', 0, vertical, true));   // seguros en gris; el color va solo en esquinas, salida y pasillo
+      else el = mk('cell');
       placeCell(el, xy);
     }
-    // Pasillo de llegada (color fuerte) y casilla de meta con su rótulo LLEGADA
+    // Pasillo hacia el final (color fuerte) y casilla de meta con su rótulo FIN
     LANES.forEach((cells, p) => cells.forEach(xy => placeCell(mk('cell lane', '', REGIONS[p].color), xy)));
-    GOALS.forEach((xy, p) => placeCell(mk('cell goal', lbl('LLEGADA', p, p === 1 || p === 3), REGIONS[p].color), xy));
+    GOALS.forEach((xy, p) => placeCell(mk('cell goal', lbl('FIN', p, p === 1 || p === 3), REGIONS[p].color), xy));
     place(mk('hat', '<img src="assets/img/sombrero.svg" alt="">'), 9.2, 9.75, 3.6, 2.5);
 
     G.tokenEls = [0, 1, 2, 3].map(p => Array.from({ length: G.s.n || 4 }, (_, i) => {
