@@ -38,8 +38,11 @@
   ];
   const GOALS = [[9, 8], [10, 9], [9, 10], [8, 9]];             // casilla de meta de cada jugador, alrededor del centro
   const JAILS = [[14, 0], [14, 14], [0, 14], [0, 0]];          // esquina (en unidades) de cada cárcel, 8x8
-  const SLOTS = [[-1.2, -1.2], [1.2, -1.2], [-1.2, 1.2], [1.2, 1.2]];  // posiciones de las 4 fichas en la cárcel
-  const JCY = [4.8, 3.2, 3.2, 4.8];   // altura del centro de las fichas: las esquinas de abajo dejan el nombre abajo
+  const SLOTS = [[-1, -1], [1, -1], [-1, 1], [1, 1]];          // posiciones de las 4 fichas en la cárcel
+  // La cárcel es un cuadrado de 6.2 unidades pegado a la esquina exterior; el nombre va arriba (esquinas de arriba) o abajo
+  const JS = 6.2;
+  const JAIL_RECT = JAILS.map(([x, y]) => ({ x: x + (x > 0 ? 8 - JS - .25 : .25), y: y + (y > 0 ? 8 - JS - .25 : .25) }));
+  const JAIL_C = JAIL_RECT.map((r, p) => [r.x + JS / 2, r.y + JS / 2 + (JAILS[p][1] === 0 ? .95 : -.95)]);   // centro del área de fichas
   const TINTS = ['rgba(252,209,22,.5)', 'rgba(30,111,224,.38)', 'rgba(224,49,70,.38)', 'rgba(34,177,98,.4)'];
 
   // Posición (x,y) de la casilla absoluta a (0..67), siguiendo el contorno de la cruz en sentido horario
@@ -162,11 +165,11 @@
     // Esquinas: cárcel de cada región con su emoji/foto y un plato para las 4 fichas
     G.jailEls = [];
     JAILS.forEach(([x, y], p) => {
-      const r = REGIONS[p], top = y === 0;
+      const r = REGIONS[p], top = y === 0, jr = JAIL_RECT[p];
       const jail = mk('jail' + (r.light ? ' light' : ''),
-        `${regionImg(r)}<div class="ptag ${top ? 'top' : 'bot'}"><span class="pe">${r.emoji}</span><span class="pt"><b class="pn"></b><small class="pg"></small></span></div>`, r.color);
-      place(jail, x + .3, y + .3, 7.4, 7.4);
-      SLOTS.forEach(([dx, dy]) => place(mk('slot'), x + 4 + dx - .95, y + JCY[p] + dy - .95, 1.9, 1.9));   // huecos de las 4 fichas
+        `${regionImg(r)}<div class="ptag ${top ? 'top' : 'bot'}"><span class="pe">${r.emoji}</span><b class="pn"></b></div>`, r.color);
+      place(jail, jr.x, jr.y, JS, JS);
+      SLOTS.forEach(([dx, dy]) => place(mk('slot'), JAIL_C[p][0] + dx - .75, JAIL_C[p][1] + dy - .75, 1.5, 1.5));   // huecos de las 4 fichas
       G.jailEls[p] = jail;
     });
     // Centro: círculo de cielo con el sombrero vueltiao
@@ -195,7 +198,7 @@
   }
 
   function centerOf(p, r, i) {
-    if (r === -1) { const [x, y] = JAILS[p]; return [x + 4 + SLOTS[i][0], y + JCY[p] + SLOTS[i][1]]; }
+    if (r === -1) return [JAIL_C[p][0] + SLOTS[i][0], JAIL_C[p][1] + SLOTS[i][1]];
     const xy = r <= Engine.LAST ? trackXY(Engine.abs(p, r)) : r < Engine.GOAL ? LANES[p][r - 67] : GOALS[p];
     const c = cellRect(xy[0], xy[1]);
     return [c.x + c.w / 2, c.y + c.h / 2];
@@ -232,7 +235,6 @@
       const j = G.jailEls[p];
       j.classList.toggle('active', s.turn === p && s.winner < 0);
       $('.pn', j).textContent = (pl.name || '').replace(/^Bot /, '') + (p === G.mySeat ? ' (tú)' : '');
-      $('.pg', j).textContent = `🏁 ${s.tokens[p].filter(r => r === Engine.GOAL).length}/4 en meta`;
     });
     $('#btnRoll').disabled = !(mine && s.phase === 'roll');
     if (s.phase === 'move') setFace(s.dice);
