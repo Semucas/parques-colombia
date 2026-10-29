@@ -346,7 +346,7 @@ input { width: 100%; font: inherit; font-size: 18px; padding: 12px 14px; border-
   justify-content: center; gap: 10px; text-align: center; font-size: 18px; }
 #rotate .rot-ico { font-size: 64px; animation: rotHint 1.6s ease-in-out infinite; }
 @keyframes rotHint { 0%, 100% { transform: rotate(0); } 50% { transform: rotate(-90deg); } }
-@media (orientation: landscape) and (max-height: 520px) { #rotate { display: flex; } }
+@media (orientation: landscape) and (max-height: 520px) and (pointer: coarse) { #rotate { display: flex; } }
 
 /* Turno actual MUY visible: la tarjeta pulsa con un halo grande de su color, la etiqueta se pinta de ese color y su pasillo brilla */
 .jail.active { z-index: 4; transform: scale(1.03); animation: turnPulse 1s ease-in-out infinite; }
