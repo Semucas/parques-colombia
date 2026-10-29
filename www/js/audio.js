@@ -55,7 +55,7 @@ const Sfx = (() => {
   }
   // Música de fondo: si existe www/assets/audio/musica.mp3 se usa esa canción (en bucle, volumen bajo);
   // si no existe o falla, suena la cumbia sintetizada de arriba.
-  const TRACK_SRC = 'assets/audio/musica.mp3', TRACK_VOLUME = 0.07;   // música de fondo: bajita, que no tape los efectos
+  const TRACK_SRC = 'assets/audio/musica.mp3', TRACK_VOLUME = 0.2;   // música de fondo: bajita, que no tape los efectos
   let track = null, trackFailed = false;
 
   function startSynth() { if (!musicTimer) musicTimer = setInterval(musicTick, 260); }
