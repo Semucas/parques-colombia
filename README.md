@@ -71,6 +71,7 @@ El jugador escoge su tipo de colombiano (costeño, paisa, rolo, caleño, llanero
 
 ## Créditos técnicos
 
-- Música de fondo: "Atlas • Colombia" de Vadim_Makes_Sound, vía Pixabay (Licencia de contenido de Pixabay). El archivo no se sube al repositorio.
+- Música del inicio: "Atlas • Colombia" de Vadim_Makes_Sound, vía Pixabay (Licencia de contenido de Pixabay). El archivo no se sube al repositorio.
+- Música de la partida (más urbana): `www/assets/audio/musica-juego.mp3`; si no existe, suena un beat de reggaetón generado por código (composición propia).
 - Ilustraciones (paisaje, sombrero vueltiao, grano de café, patrón de mochila y las 10 escenas de las regiones en `www/assets/img/tipos`): vectores originales del proyecto, sin material de terceros.
 - Uso de IA: se usó Claude como apoyo para generar la base del código; Sebastián Muñoz lo revisó, lo entiende y lo adaptó.

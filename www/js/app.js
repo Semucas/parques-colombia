@@ -83,6 +83,7 @@
   function go(id) {
     $$('.screen').forEach(s => s.classList.toggle('active', s.id === id));
     $('#app').dataset.screen = id;
+    Sfx.setScene(id === 'game' ? 'game' : 'home');   // música más urbana mientras se juega
     if (id === 'scores') renderScores();
     if (id === 'levels') renderLevels();
     if (id === 'home') renderHome();

@@ -1,4 +1,4 @@
-/* Sonidos sintetizados con WebAudio (no requiere archivos de audio) + música tipo cumbia sencilla. */
+/* Sonidos sintetizados con WebAudio (no requiere archivos de audio) + música de fondo por escena. */
 const Sfx = (() => {
   let ctx = null, musicTimer = null, step = 0;
   const on = () => Store.d.sound;
@@ -44,39 +44,69 @@ const Sfx = (() => {
 
   function play(name) { if (on() && SOUNDS[name]) SOUNDS[name](); }
 
-  // Patrón de cumbia: bajo + "guacharaca"
+  /* ---------- Música de fondo por escena ----------
+     'home' (inicio, perfil, puntajes...): www/assets/audio/musica.mp3, o una cumbia sencilla si no existe.
+     'game' (durante la partida, más urbana): www/assets/audio/musica-juego.mp3, o un beat de reggaetón si no existe. */
+  const TRACK_VOLUME = 0.2;   // bajita, que no tape los efectos
+  const SCENES = {
+    home: { src: 'assets/audio/musica.mp3', every: 260, el: null, failed: false },
+    game: { src: 'assets/audio/musica-juego.mp3', every: 158, el: null, failed: false }
+  };
+  let scene = 'home';
+
+  // Cumbia sencilla (respaldo del inicio): bajo + guacharaca
   const BASS = [196, 0, 262, 0, 196, 0, 294, 262];
-  function musicTick() {
-    if (!Store.d.music) return stopMusic();
+  function tickHome() {
     const b = BASS[step % 8];
     if (b) tone(b, 0.22, 'triangle', 0.035);
     noise(0.04, step % 2 ? 0.012 : 0.025);
     step++;
   }
-  // Música de fondo: si existe www/assets/audio/musica.mp3 se usa esa canción (en bucle, volumen bajo);
-  // si no existe o falla, suena la cumbia sintetizada de arriba.
-  const TRACK_SRC = 'assets/audio/musica.mp3', TRACK_VOLUME = 0.2;   // música de fondo: bajita, que no tape los efectos
-  let track = null, trackFailed = false;
+  // Beat urbano tipo reggaetón (respaldo de la partida), ~95 BPM: bombo en los 4 tiempos, "dembow" de caja, bajo 808 y hi-hat
+  const KICK = [1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0, 0];
+  const SNARE = [0, 0, 0, 1, 0, 0, 1, 0, 0, 0, 0, 1, 0, 0, 1, 0];
+  const B808 = [55, 0, 0, 0, 0, 0, 0, 55, 0, 0, 65, 0, 0, 0, 0, 0];
+  const LEAD = [0, 0, 0, 0, 440, 0, 0, 0, 0, 0, 523, 0, 392, 0, 0, 0];
+  function tickGame() {
+    const i = step % 16;
+    if (KICK[i]) tone(140, 0.18, 'sine', 0.07, 0, 45);
+    if (SNARE[i]) { noise(0.09, 0.03); tone(190, 0.08, 'triangle', 0.025); }
+    noise(0.025, i % 2 ? 0.008 : 0.016);
+    if (B808[i]) tone(B808[i], 0.28, 'sine', 0.06);
+    if (LEAD[i]) tone(LEAD[i], 0.16, 'square', 0.012);
+    step++;
+  }
+  function musicTick() {
+    if (!Store.d.music) return stopMusic();
+    (scene === 'game' ? tickGame : tickHome)();
+  }
 
-  function startSynth() { if (!musicTimer) musicTimer = setInterval(musicTick, 260); }
+  function startSynth() { if (!musicTimer) musicTimer = setInterval(musicTick, SCENES[scene].every); }
 
   function startMusic() {
     if (!Store.d.music) return;
-    if (trackFailed) return startSynth();
-    if (!track) {
-      track = new Audio(TRACK_SRC);
-      track.loop = true; track.volume = TRACK_VOLUME;
-      track.addEventListener('error', () => { trackFailed = true; if (Store.d.music) startSynth(); });
+    const sc = SCENES[scene];
+    if (sc.failed) return startSynth();
+    if (!sc.el) {
+      sc.el = new Audio(sc.src);
+      sc.el.loop = true; sc.el.volume = TRACK_VOLUME;
+      sc.el.addEventListener('error', () => { sc.failed = true; if (Store.d.music && SCENES[scene] === sc) startSynth(); });
     }
-    track.play().catch(err => {
+    sc.el.play().catch(err => {
       // NotAllowedError = aún no hay un toque del usuario (se reintenta en el siguiente); otro error = no hay archivo
-      if (err && err.name !== 'NotAllowedError') { trackFailed = true; startSynth(); }
+      if (err && err.name !== 'NotAllowedError') { sc.failed = true; if (SCENES[scene] === sc) startSynth(); }
     });
   }
   function stopMusic() {
     clearInterval(musicTimer); musicTimer = null;
-    if (track) track.pause();
+    Object.values(SCENES).forEach(sc => { if (sc.el) sc.el.pause(); });
+  }
+  // Cambia la música al entrar a la partida ('game') y al volver a las demás pantallas ('home')
+  function setScene(name) {
+    if (name === scene) return;
+    stopMusic(); scene = name; step = 0;
+    if (Store.d.music) startMusic();
   }
 
-  return { play, startMusic, stopMusic, unlock: ac };
+  return { play, startMusic, stopMusic, setScene, unlock: ac };
 })();
