@@ -49,13 +49,13 @@ const Sfx = (() => {
   function musicTick() {
     if (!Store.d.music) return stopMusic();
     const b = BASS[step % 8];
-    if (b) tone(b, 0.22, 'triangle', 0.08);
-    noise(0.04, step % 2 ? 0.03 : 0.06);
+    if (b) tone(b, 0.22, 'triangle', 0.035);
+    noise(0.04, step % 2 ? 0.012 : 0.025);
     step++;
   }
   // Música de fondo: si existe www/assets/audio/musica.mp3 se usa esa canción (en bucle, volumen bajo);
   // si no existe o falla, suena la cumbia sintetizada de arriba.
-  const TRACK_SRC = 'assets/audio/musica.mp3', TRACK_VOLUME = 0.25;
+  const TRACK_SRC = 'assets/audio/musica.mp3', TRACK_VOLUME = 0.08;   // música de fondo: bajita, que no tape los efectos
   let track = null, trackFailed = false;
 
   function startSynth() { if (!musicTimer) musicTimer = setInterval(musicTick, 260); }

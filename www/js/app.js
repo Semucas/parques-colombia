@@ -19,8 +19,7 @@
     capture: ['¡Pa\' la cárcel, parce!', '¡Uy, qué vaina tan brava!', '¡Ay, qué pesar!', '¡Eche, no joda!'],
     six: ['¡Qué suerte, mono!', '¡Eso, mi rey!', '¡Hágale pues!'],
     goal: ['¡Qué chimba, a la meta!', '¡Ficha a salvo, parce!'],
-    pass: ['Sin jugadas, ¡toca esperar!', 'Hoy no es el día, parce'],
-    exit: ['¡Ficha pa\' la calle!', '¡Quiubo, a rodar!']
+    pass: ['Sin jugadas, ¡toca esperar!', 'Hoy no es el día, parce']
   };
   /* Tablero en cruz: cada brazo mide 3 casillas de ancho y 8 de largo. Las coordenadas (gx,gy) son de una cuadrícula
      lógica de 19x19; al dibujar, las 3 filas/columnas centrales miden 2 unidades y el resto 1, así las casillas
@@ -335,7 +334,7 @@
       Sfx.play('capture'); toast(rnd(PHRASES.capture), 1800);
       ev.captured.forEach(c => { const el = G.tokenEls[c.p][c.i]; el.classList.remove('hit'); void el.offsetWidth; el.classList.add('hit'); });
     } else if (ev.goal) { Sfx.play('goal'); toast(rnd(PHRASES.goal), 1800); confetti(25); }
-    else if (ev.exit) { Sfx.play('exit'); toast(rnd(PHRASES.exit), 1500); }
+    else if (ev.exit) Sfx.play('exit');
     if (ev.win) Sfx.play(ev.p === G.mySeat ? 'win' : 'lose');
   }
 
@@ -414,7 +413,7 @@
         Sfx.play('capture'); toast(rnd(PHRASES.capture));
         ev.captured.forEach(c => { const el = G.tokenEls[c.p][c.i]; el.classList.remove('hit'); void el.offsetWidth; el.classList.add('hit'); });
       } else if (ev.goal) { Sfx.play('goal'); toast(rnd(PHRASES.goal)); confetti(25); }
-      else if (ev.exit) { Sfx.play('exit'); toast(rnd(PHRASES.exit), 1100); }
+      else if (ev.exit) Sfx.play('exit');
       else Sfx.play('move');
       if (ev.win) Sfx.play(ev.p === G.mySeat ? 'win' : 'lose');
     } else if (ev.kind === 'pass') {
