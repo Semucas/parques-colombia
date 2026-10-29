@@ -78,7 +78,7 @@ Para verlo en el celular por Wi‑Fi, abre `http://<IP-del-computador>:5173` en 
 
 ## Probar con el APK en el celular
 
-Requisitos: **Android Studio** (con el SDK de Android) y un **JDK entre 17 y 22**. Las versiones nuevas de Android Studio traen Java 25, que este proyecto (Gradle 8.7) no soporta; si es tu caso, instala un JDK 17 o 21 y úsalo en `JAVA_HOME`.
+Requisitos: **Android Studio** (con el SDK de Android) y un **JDK entre 17 y 22**. Las versiones nuevas de Android Studio traen Java 25, que este proyecto (Gradle 8.10) no soporta; si es tu caso, instala un JDK 17, 21 o 22 y úsalo en `JAVA_HOME`. Si la ruta de tu carpeta tiene tildes (por ejemplo `Aplicaciones móviles`), el proyecto ya incluye `android.overridePathCheck=true` en `android/gradle.properties`.
 
 **Opción A: con Android Studio (la más fácil)**
 
@@ -93,10 +93,14 @@ En Android Studio: elige tu celular (o un emulador) y pulsa **▶ Run**.
 **Opción B: generar el APK desde la terminal**
 
 ```bash
+export JAVA_HOME="C:/Program Files/Java/jdk-22"      # un JDK 17-22
+export ANDROID_HOME="$LOCALAPPDATA/Android/Sdk"
 npx cap sync android
 cd android
-./gradlew assembleDebug          # en Windows: gradlew.bat assembleDebug
+./gradlew assembleDebug          # en Windows (cmd): gradlew.bat assembleDebug
 ```
+
+La primera vez tarda unos 3 minutos porque descarga Gradle y las dependencias.
 
 El APK queda en `android/app/build/outputs/apk/debug/app-debug.apk`.
 
