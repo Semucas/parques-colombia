@@ -12,17 +12,19 @@
   ];
   // Tipos de colombianos que se pueden escoger en el perfil: su emoji es tu personaje en el tablero
   const TIPOS = [
-    { id: 'costeno', emoji: '🥥', name: 'Costeño', from: 'Caribe', phrase: '¡Ajá, mi vale!' },
-    { id: 'paisa', emoji: '☕', name: 'Paisa', from: 'Antioquia y Eje Cafetero', phrase: '¡Quiubo, pues, parce!' },
-    { id: 'rolo', emoji: '🏙️', name: 'Rolo', from: 'Bogotá', phrase: '¡Qué más, veci!' },
-    { id: 'caleno', emoji: '💃', name: 'Caleño', from: 'Valle del Cauca', phrase: '¡Oiga, mano!' },
-    { id: 'llanero', emoji: '🐎', name: 'Llanero', from: 'Llanos Orientales', phrase: '¡Pa\' lante, compadre!' },
-    { id: 'santandereano', emoji: '🌶️', name: 'Santandereano', from: 'Santander', phrase: '¡Eche, home!' },
-    { id: 'boyacense', emoji: '🥔', name: 'Boyacense', from: 'Boyacá', phrase: '¡A la orden, sumercé!' },
-    { id: 'pastuso', emoji: '🐹', name: 'Pastuso', from: 'Nariño', phrase: '¡Ala, pues!' },
-    { id: 'chocoano', emoji: '🐋', name: 'Chocoano', from: 'Pacífico', phrase: '¡Ole, mi hermano!' },
-    { id: 'amazonico', emoji: '🦜', name: 'Amazónico', from: 'Amazonía', phrase: '¡Qué chimba de selva!' }
+    { id: 'costeno', tribute: 'por la alegría, la música y el calor humano del Caribe.', emoji: '🥥', name: 'Costeño', from: 'Caribe', phrase: '¡Ajá, mi vale!' },
+    { id: 'paisa', tribute: 'por la berraquera, el café y las montañas que enamoran.', emoji: '☕', name: 'Paisa', from: 'Antioquia y Eje Cafetero', phrase: '¡Quiubo, pues, parce!' },
+    { id: 'rolo', tribute: 'por la hospitalidad y el ajetreo de una ciudad que nunca para.', emoji: '🏙️', name: 'Rolo', from: 'Bogotá', phrase: '¡Qué más, veci!' },
+    { id: 'caleno', tribute: 'por la salsa, el sabor y el ritmo que se lleva en los pies.', emoji: '💃', name: 'Caleño', from: 'Valle del Cauca', phrase: '¡Oiga, mano!' },
+    { id: 'llanero', tribute: 'por el joropo, los atardeceres y el amor por la sabana.', emoji: '🐎', name: 'Llanero', from: 'Llanos Orientales', phrase: '¡Pa\' lante, compadre!' },
+    { id: 'santandereano', tribute: 'por el carácter, la franqueza y el ají que no perdona.', emoji: '🌶️', name: 'Santandereano', from: 'Santander', phrase: '¡Eche, home!' },
+    { id: 'boyacense', tribute: 'por la amabilidad, la tradición y el campo que alimenta al país.', emoji: '🥔', name: 'Boyacense', from: 'Boyacá', phrase: '¡A la orden, sumercé!' },
+    { id: 'pastuso', tribute: 'por el ingenio, el humor y los volcanes del sur.', emoji: '🐹', name: 'Pastuso', from: 'Nariño', phrase: '¡Ala, pues!' },
+    { id: 'chocoano', tribute: 'por la música, la selva y las ballenas del Pacífico.', emoji: '🐋', name: 'Chocoano', from: 'Pacífico', phrase: '¡Ole, mi hermano!' },
+    { id: 'amazonico', tribute: 'por cuidar el pulmón del mundo y su riqueza de vida.', emoji: '🦜', name: 'Amazónico', from: 'Amazonía', phrase: '¡Qué chimba de selva!' }
   ];
+  // Tipos al azar para los bots (distintos a los del jugador)
+  const botTypes = (n, exclude) => TIPOS.filter(t => !exclude.includes(t.emoji)).sort(() => Math.random() - .5).slice(0, n);
   const myType = () => TIPOS.find(t => t.id === Store.d.type) || TIPOS[1];
   const LEVELS = [
     { name: 'Parcero novato', desc: 'Bots que juegan al azar · 25 s por turno', secs: 25 },
@@ -124,7 +126,8 @@
     $('#profileErr').textContent = '';
     syncAudioButtons();
     $('#btnProfileBack').style.visibility = hasName ? 'visible' : 'hidden';   // la primera vez no se puede saltar
-    $('#profileMsg').textContent = hasName ? 'Aquí puedes cambiar tu nombre y tu tipo de colombiano' : '¡Bienvenido! ¿Cómo te llamas, parcero?';
+    $('#profileMsg').textContent = hasName ? '' : '¡Bienvenido! ¿Cómo te llamas, parcero?';
+    $('#profileMsg').classList.toggle('hidden', hasName);
     renderTypePick();
   }
   // Cuadrícula para escoger de qué región/tipo de colombiano eres; se guarda al tocar
@@ -132,10 +135,12 @@
     const t = myType();
     $('#profileAv').textContent = t.emoji;
     $('#typePhrase').textContent = `${t.name} · ${t.from} — ${t.phrase}`;
-    $('#typePick').innerHTML = TIPOS.map(x =>
-      `<button class="tt ${x.id === t.id ? 'sel' : ''}" data-t="${x.id}"><span>${x.emoji}</span>${x.name}</button>`).join('');
-    $$('.tt').forEach(b => b.onclick = () => { Store.d.type = b.dataset.t; Store.save(); Sfx.play('click'); renderTypePick(); });
+    $('#typePick').innerHTML = typeButtons(false);
+    $$('#typePick .tt').forEach(b => b.onclick = () => { Store.d.type = b.dataset.t; Store.save(); Sfx.play('click'); renderTypePick(); });
   }
+  const typeButtons = mini => TIPOS.map(x =>
+    `<button class="tt ${mini ? 'mini' : ''} ${x.id === myType().id ? 'sel' : ''}" data-t="${x.id}"><span>${x.emoji}</span>${x.name}</button>`).join('');
+  const COLOR_NAMES = ['Amarillo', 'Azul', 'Rojo', 'Verde'];
   function saveName() {
     const n = $('#inpName').value.trim();
     if (!n) { $('#profileErr').textContent = 'Escribe un nombre para continuar'; Sfx.play('lose'); return; }
@@ -147,12 +152,16 @@
   }
   const regionCardHTML = r => `<div class="region-card ${r.light ? 'light' : ''}" style="--c:${r.color}">${regionImg(r)}<div class="em">${r.emoji}</div><b>${r.name}</b><small>${r.phrase}</small></div>`;
   function renderCredits() {
-    $('#creditRegions').innerHTML = REGIONS.map(regionCardHTML).join('');
+    $('#tributes').innerHTML = TIPOS.map(t => `<li><span class="te">${t.emoji}</span><span>A los <b>${t.name.toLowerCase()}s</b>, ${t.tribute}</span></li>`).join('');
     $('#eggHint').textContent = Store.d.eggs.coffee ? '☕ Ya te ganaste el tinto. ¡Gracias por jugar!' : '';
   }
   function renderLevels() {
+    const t = myType();
+    $('#typePickLevels').innerHTML = typeButtons(true);
+    $('#typePhraseLevels').textContent = `${t.emoji} ${t.name} · ${t.from} — ${t.phrase}`;
+    $$('#typePickLevels .tt').forEach(b => b.onclick = () => { Store.d.type = b.dataset.t; Store.save(); Sfx.play('click'); renderLevels(); });
     $('#regionPick').innerHTML = REGIONS.map((r, i) =>
-      `<button class="rp ${i === Store.d.region ? 'sel' : ''}" style="--c:${r.color}" data-r="${i}" title="${r.name}">${r.emoji}</button>`).join('');
+      `<button class="rp ${i === Store.d.region ? 'sel' : ''}" style="--c:${r.color}" data-r="${i}" title="${COLOR_NAMES[i]}">${i === Store.d.region ? '✓' : ''}</button>`).join('');
     $$('.rp').forEach(b => b.onclick = () => { Store.d.region = +b.dataset.r; Store.save(); Sfx.play('click'); renderLevels(); });
     renderTokPick('#tokPick');
     $('#levelList').innerHTML = LEVELS.map((l, i) => {
@@ -462,7 +471,9 @@
   function startOffline(level) {
     G.mode = 'offline'; G.level = level; G.mySeat = Store.d.region; G.isHost = true;
     const name = Store.d.name.trim() || 'Parcero';
-    const players = REGIONS.map((r, i) => i === G.mySeat ? { type: 'human', name, emoji: myType().emoji } : { type: 'bot', name: 'Bot ' + r.name, level });
+    const bt = botTypes(3, [myType().emoji]);
+    let bi = 0;
+    const players = REGIONS.map((r, i) => { if (i === G.mySeat) return { type: 'human', name, emoji: myType().emoji }; const b = bt[bi++]; return { type: 'bot', name: 'Bot ' + b.name, emoji: b.emoji, level }; });
     begin(Engine.newState(players, Store.d.tokens));
   }
 
@@ -481,7 +492,7 @@
     if (won) confetti(90);
     setTimeout(() => modal(
       `<div class="em">${won ? '🏆' : '😅'}</div><h3>${won ? '¡Ganaste, parce!' : 'Ganó ' + s.players[s.winner].name}</h3>
-       <p><b>${pts}</b> puntos · ${G.stats.captures} capturas · ${goals}/${n} fichas en meta</p>${extra}`,
+       <p><b>${pts}</b> puntos · ${G.stats.captures} fichas comidas · ${goals}/${n} en la meta</p>${extra}`,
       [{ text: '🏆 Ver puntajes', cls: 'yellow', fn: () => { leaveRoom(); go('scores'); } }]), 1600 + Math.max(0, G.busyUntil - Date.now()));
   }
 
@@ -508,7 +519,7 @@
   /* ---------- puntajes ---------- */
   function renderScores() {
     const st = Store.d.stats;
-    $('#statsRow').innerHTML = [['Partidas', st.games], ['Victorias', st.wins], ['Capturas', st.captures]]
+    $('#statsRow').innerHTML = [['Partidas', st.games], ['Victorias', st.wins], ['Fichas comidas', st.captures]]
       .map(([l, v]) => `<div class="stat"><b>${v}</b>${l}</div>`).join('');
     const banner = $('#resultBanner');
     if (G.lastResult) {
@@ -584,9 +595,13 @@
     return st;
   }
   function hostStart() {
+    const used = Object.values(room.seats || {}).map(x => x.emoji);
+    const bt = botTypes(4, used);
+    let bi = 0;
     const players = REGIONS.map((r, i) => {
       const s = room.seats && room.seats['s' + i];
-      return s ? { type: 'human', name: s.name, uid: s.uid, emoji: s.emoji } : { type: 'bot', name: 'Bot ' + r.name, level: 2 };
+      if (s) return { type: 'human', name: s.name, uid: s.uid, emoji: s.emoji };
+      const b = bt[bi++]; return { type: 'bot', name: 'Bot ' + b.name, emoji: b.emoji, level: 2 };
     });
     Online.startGame(Engine.newState(players, Store.d.tokens));
   }

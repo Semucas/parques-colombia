@@ -5,7 +5,7 @@
   <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no, viewport-fit=cover">
   <meta name="theme-color" content="#0b2a6b">
   <title>Parqués Parce</title>
-  <link rel="stylesheet" href="css/style.css?v=20">
+  <link rel="stylesheet" href="css/style.css?v=22">
 </head>
 <body>
 <div id="app">
@@ -15,7 +15,7 @@
     <div class="splash-logo">
       <div class="dice-logo">🎲</div>
       <h1>Parqués<br><span>Parce</span></h1>
-      <p>El parqués de toda Colombia 🇨🇴</p>
+      <p>El parqués de toda Colombia <span class="flag"></span></p>
     </div>
     <div class="loadbar"><i></i></div>
     <small class="tap">Toca para continuar</small>
@@ -59,7 +59,10 @@
   <!-- Selección de nivel (offline) -->
   <section id="levels" class="screen">
     <header class="top"><button class="icon" data-go="home">⬅️</button><h2>Elige tu reto</h2><span></span></header>
-    <p class="sub">Escoge tu región (tu color)</p>
+    <p class="sub">¿De qué región juegas?</p>
+    <div class="type-grid mini" id="typePickLevels"></div>
+    <p class="phrase" id="typePhraseLevels"></p>
+    <p class="sub">Tu color en el tablero</p>
     <div class="region-pick" id="regionPick"></div>
     <p class="sub">¿Con cuántas fichas quieres jugar?</p>
     <div class="tok-pick" id="tokPick"></div>
@@ -125,14 +128,13 @@
     <header class="top"><button class="icon" data-go="home">⬅️</button><h2>Créditos</h2><span></span></header>
     <div class="card">
       <h3>Parqués Parce <span id="coffee">☕</span></h3>
-      <p>Juego de la materia Aplicaciones Móviles – UPB.</p>
-      <p><b>Desarrollo y diseño:</b> Sebastián Muñoz</p>
-      <p><b>Tecnología:</b> HTML, CSS y JavaScript empaquetados con Capacitor; sonidos con WebAudio; modo online con Firebase.</p>
-      <p><b>IA:</b> se usó Claude como apoyo para generar la base del código; Sebastián lo revisó, lo entiende y lo adaptó.</p>
-      <p><b>Música:</b> "Atlas • Colombia" de Vadim_Makes_Sound, vía Pixabay (Licencia de contenido de Pixabay).</p>
-      <p><b>Ilustraciones:</b> paisaje, sombrero vueltiao, grano de café y patrón de mochila: vectores originales del proyecto, sin material de terceros.</p>
+      <p class="by">Creado por <b>Sebastián Muñoz</b></p>
+      <p>Este juego es un homenaje a la gente de Colombia <span class="flag"></span>: a su alegría, su berraquera y esas tardes de parqués en familia, en la esquina o en el parque.</p>
     </div>
-    <div class="regions" id="creditRegions"></div>
+    <h3 class="cred-title">Gracias, Colombia</h3>
+    <ul class="tributes" id="tributes"></ul>
+    <p class="end">¡Gracias por jugar y que viva Colombia! <span class="flag"></span></p>
+    <p class="tiny">Música: "Atlas • Colombia" de Vadim_Makes_Sound (Pixabay) · Hecho con ayuda de IA (Claude) y revisado por Sebastián.</p>
     <p class="sub small" id="eggHint"></p>
   </section>
 
@@ -144,11 +146,11 @@
 
 <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-app-compat.js" onerror="this.remove()"></script>
 <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-database-compat.js" onerror="this.remove()"></script>
-<script src="js/firebase-config.js?v=20"></script>
-<script src="js/store.js?v=20"></script>
-<script src="js/audio.js?v=20"></script>
-<script src="js/engine.js?v=20"></script>
-<script src="js/online.js?v=20"></script>
-<script src="js/app.js?v=20"></script>
+<script src="js/firebase-config.js?v=22"></script>
+<script src="js/store.js?v=22"></script>
+<script src="js/audio.js?v=22"></script>
+<script src="js/engine.js?v=22"></script>
+<script src="js/online.js?v=22"></script>
+<script src="js/app.js?v=22"></script>
 </body>
 </html>

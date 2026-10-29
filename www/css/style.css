@@ -288,3 +288,20 @@ input { width: 100%; font: inherit; font-size: 18px; padding: 12px 14px; border-
   font-weight: 800; font-size: 14px; color: #fff; background: rgba(255,255,255,.16); text-align: left; cursor: pointer; box-shadow: 0 3px 0 rgba(0,0,0,.25); }
 .tt span { font-size: 24px; }
 .tt.sel { background: var(--yellow); color: #3a2f00; border-color: #fff; }
+
+/* Escoger región al jugar (compacto) y créditos a los colombianos */
+.type-grid.mini { grid-template-columns: repeat(5, 1fr); gap: 6px; }
+.tt.mini { flex-direction: column; gap: 2px; padding: 6px 2px; font-size: 9.5px; text-align: center; justify-content: center; }
+.tt.mini span { font-size: 22px; }
+.rp { display: flex; align-items: center; justify-content: center; font-size: 26px; font-weight: 900; color: #fff; text-shadow: 0 1px 3px rgba(0,0,0,.5); }
+.by { font-size: 16px; }
+.cred-title { text-align: center; color: var(--yellow); margin-top: 4px; }
+.tributes { list-style: none; padding: 0; margin: 0; width: 100%; display: flex; flex-direction: column; gap: 8px; }
+.tributes li { display: flex; align-items: center; gap: 10px; background: rgba(255,255,255,.12); border-radius: 14px; padding: 8px 12px; text-align: left; font-size: 14px; }
+.tributes .te { font-size: 28px; line-height: 1; }
+.end { text-align: center; font-weight: 800; color: var(--yellow); margin: 4px 0; }
+.tiny { font-size: 10.5px; opacity: .65; text-align: center; margin: 0 0 6px; }
+
+/* Bandera de Colombia dibujada con CSS (el emoji de bandera no se ve en Windows) */
+.flag { display: inline-block; width: 1.4em; height: .95em; vertical-align: -.12em; border-radius: 2px; box-shadow: 0 1px 2px rgba(0,0,0,.4);
+  background: linear-gradient(#FCD116 0 50%, #0b4ea2 50% 75%, #CE1126 75%); }
