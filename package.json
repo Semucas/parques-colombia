@@ -1,0 +1,18 @@
+{
+  "name": "parques-parce",
+  "version": "1.0.0",
+  "description": "Parqués colombiano: offline con bots u online con amigos",
+  "scripts": {
+    "start": "npx serve www -l 5173",
+    "test": "node test/engine.test.js",
+    "sync": "npx cap sync android",
+    "android": "npx cap open android"
+  },
+  "dependencies": {
+    "@capacitor/android": "^6.1.2",
+    "@capacitor/core": "^6.1.2"
+  },
+  "devDependencies": {
+    "@capacitor/cli": "^6.1.2"
+  }
+}
