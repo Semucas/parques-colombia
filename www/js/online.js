@@ -2,7 +2,7 @@
    Estructura: rooms/{CODIGO} = { host, started, seats: {s0..s3: {uid,name}}, state: {...estado del juego...} }
    Cada jugador escribe el estado completo cuando le toca jugar; el anfitrión mueve los bots. */
 const Online = (() => {
-  let db = null, roomRef = null, handler = null, code = null;
+  let db = null, roomRef = null, handler = null, code = null, seatKey = null;
 
   // Id del jugador (en la base simulada de pruebas, cada pestaña es un jugador distinto)
   const idStore = () => (window.FIREBASE_MOCK ? sessionStorage : localStorage);
@@ -31,7 +31,8 @@ const Online = (() => {
       const ref = db.ref('rooms/' + c);
       if ((await ref.once('value')).exists()) continue;
       await ref.set({ host: uid, created: Date.now(), started: false, seats: { s0: { uid, name, emoji } } });
-      ref.child('seats/s0').onDisconnect().remove();
+      ref.onDisconnect().remove();                         // si el anfitrión se desconecta, la sala se cierra para todos
+      seatKey = 's0';
       code = c; roomRef = ref;
       return c;
     }
@@ -53,7 +54,8 @@ const Online = (() => {
     });
     if (!res.committed) throw new Error('La sala está llena.');
     const seat = Object.keys(res.snapshot.val()).find(k => res.snapshot.val()[k].uid === uid);
-    ref.child('seats/' + seat).onDisconnect().remove();
+    ref.child('seats/' + seat).onDisconnect().remove();   // si se desconecta, su puesto queda libre
+    seatKey = seat;
     code = c; roomRef = ref;
     return c;
   }
@@ -76,13 +78,15 @@ const Online = (() => {
   // Firebase no acepta valores undefined: se limpia el estado antes de escribirlo
   function push(state) { if (roomRef) roomRef.child('state').set(JSON.parse(JSON.stringify(state))); }
 
+  // El anfitrión que sale cierra la sala; cualquier otro jugador solo libera su puesto (la partida sigue sin él)
   async function leave(isHost) {
     if (!roomRef) return;
     try {
       if (handler) roomRef.off('value', handler);
       if (isHost) await roomRef.remove();
+      else if (seatKey) await roomRef.child('seats/' + seatKey).remove();
     } catch (e) { /* sin conexión: se ignora */ }
-    roomRef = null; handler = null; code = null;
+    roomRef = null; handler = null; code = null; seatKey = null;
   }
 
   return { uid, ready, create, join, listen, seatOf, startGame, push, leave, get code() { return code; } };

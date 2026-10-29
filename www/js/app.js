@@ -581,6 +581,12 @@
         if (G.mySeat < 0) return;
         begin(st);
       } else if (G.active && st.seq > G.s.seq) { G.s = st; onNewState(); }
+      // El anfitrión saca de la partida a quien ya no está en la sala (salió o se desconectó)
+      if (G.active && G.isHost && G.mode === 'online' && G.s.winner < 0) {
+        G.s.players.forEach((pl, p) => {
+          if (pl.type === 'human' && p !== G.mySeat && !(v.seats && v.seats['s' + p])) { Engine.removePlayer(G.s, p); commit(); }
+        });
+      }
       return;
     }
     renderLobby(v);
