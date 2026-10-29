@@ -25,6 +25,9 @@
   ];
   // Tipos al azar para los bots (distintos a los del jugador)
   const botTypes = (n, exclude) => TIPOS.filter(t => !exclude.includes(t.emoji)).sort(() => Math.random() - .5).slice(0, n);
+  // Escena representativa de la región de cada personaje (fondo de su tarjeta)
+  const tipoOf = pl => TIPOS.find(t => pl && t.emoji === pl.emoji);
+  const sceneImg = p => { const t = tipoOf(G.s.players[p]); return t ? `<img class="scene" src="assets/img/tipos/${t.id}.svg" alt="">` : ''; };
   const myType = () => TIPOS.find(t => t.id === Store.d.type) || TIPOS[1];
   const LEVELS = [
     { name: 'Parcero novato', desc: 'Bots que juegan al azar · 25 s por turno', secs: 25 },
@@ -134,13 +137,13 @@
   function renderTypePick() {
     const t = myType();
     $('#profileAv').textContent = t.emoji;
+    $('#profileAv').style.backgroundImage = `url(assets/img/tipos/${t.id}.svg)`;
     $('#typePhrase').textContent = `${t.name} · ${t.from} — ${t.phrase}`;
     $('#typePick').innerHTML = typeButtons(false);
     $$('#typePick .tt').forEach(b => b.onclick = () => { Store.d.type = b.dataset.t; Store.save(); Sfx.play('click'); renderTypePick(); });
   }
   const typeButtons = mini => TIPOS.map(x =>
     `<button class="tt ${mini ? 'mini' : ''} ${x.id === myType().id ? 'sel' : ''}" data-t="${x.id}"><span>${x.emoji}</span>${x.name}</button>`).join('');
-  const COLOR_NAMES = ['Amarillo', 'Azul', 'Rojo', 'Verde'];
   function saveName() {
     const n = $('#inpName').value.trim();
     if (!n) { $('#profileErr').textContent = 'Escribe un nombre para continuar'; Sfx.play('lose'); return; }
@@ -160,9 +163,6 @@
     $('#typePickLevels').innerHTML = typeButtons(true);
     $('#typePhraseLevels').textContent = `${t.emoji} ${t.name} · ${t.from} — ${t.phrase}`;
     $$('#typePickLevels .tt').forEach(b => b.onclick = () => { Store.d.type = b.dataset.t; Store.save(); Sfx.play('click'); renderLevels(); });
-    $('#regionPick').innerHTML = REGIONS.map((r, i) =>
-      `<button class="rp ${i === Store.d.region ? 'sel' : ''}" style="--c:${r.color}" data-r="${i}" title="${COLOR_NAMES[i]}">${i === Store.d.region ? '✓' : ''}</button>`).join('');
-    $$('.rp').forEach(b => b.onclick = () => { Store.d.region = +b.dataset.r; Store.save(); Sfx.play('click'); renderLevels(); });
     renderTokPick('#tokPick');
     $('#levelList').innerHTML = LEVELS.map((l, i) => {
       return `<button class="level" data-l="${i + 1}"><span class="n">${i + 1}</span>
@@ -205,7 +205,7 @@
     JAILS.forEach(([x, y], p) => {
       const r = REGIONS[p], top = y === 0, jr = JAIL_RECT[p];
       const jail = mk('jail' + (r.light ? ' light' : ''),
-        `${regionImg(r)}<div class="ptag ${top ? 'top' : 'bot'}"><span class="pe">${(G.s.players[p] && G.s.players[p].emoji) || r.emoji}</span><b class="pn"></b></div>`, r.color);
+        `${sceneImg(p)}<div class="ptag ${top ? 'top' : 'bot'}"><span class="pe">${(G.s.players[p] && G.s.players[p].emoji) || r.emoji}</span><b class="pn"></b></div>`, r.color);
       place(jail, jr.x, jr.y, JS, JS);
       slotsOf().forEach(([dx, dy]) => place(mk('slot'), JAIL_C[p][0] + dx - .75, JAIL_C[p][1] + dy - .75 / ASPECT, 1.5, 1.5 / ASPECT));   // huecos de las 4 fichas
       G.jailEls[p] = jail;
@@ -469,7 +469,7 @@
   }
 
   function startOffline(level) {
-    G.mode = 'offline'; G.level = level; G.mySeat = Store.d.region; G.isHost = true;
+    G.mode = 'offline'; G.level = level; G.mySeat = Math.floor(Math.random() * 4);   // el color/esquina se sortea en cada partida G.isHost = true;
     const name = Store.d.name.trim() || 'Parcero';
     const bt = botTypes(3, [myType().emoji]);
     let bi = 0;

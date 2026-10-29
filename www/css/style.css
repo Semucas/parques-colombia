@@ -305,3 +305,8 @@ input { width: 100%; font: inherit; font-size: 18px; padding: 12px 14px; border-
 /* Bandera de Colombia dibujada con CSS (el emoji de bandera no se ve en Windows) */
 .flag { display: inline-block; width: 1.4em; height: .95em; vertical-align: -.12em; border-radius: 2px; box-shadow: 0 1px 2px rgba(0,0,0,.4);
   background: linear-gradient(#FCD116 0 50%, #0b4ea2 50% 75%, #CE1126 75%); }
+
+/* Tarjetas de los personajes con la escena de su región de fondo */
+.jail img.scene { opacity: .62; }
+.profile-av { width: 112px; height: 112px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 58px;
+  background-size: cover; background-position: center; border: 4px solid #fff; box-shadow: 0 6px 0 rgba(0,0,0,.25); text-shadow: 0 2px 6px rgba(0,0,0,.45); }

@@ -67,3 +67,9 @@ Sube el `.aab` en Google Play Console (cuenta de desarrollador, ficha de tienda,
 ## Perfil
 
 El jugador escoge su tipo de colombiano (costeño, paisa, rolo, caleño, llanero, santandereano, boyacense, pastuso, chocoano o amazónico); su emoji es su personaje en el tablero y sale en el Home y en la sala online.
+
+## Créditos técnicos
+
+- Música de fondo: "Atlas • Colombia" de Vadim_Makes_Sound, vía Pixabay (Licencia de contenido de Pixabay). El archivo no se sube al repositorio.
+- Ilustraciones (paisaje, sombrero vueltiao, grano de café, patrón de mochila y las 10 escenas de las regiones en `www/assets/img/tipos`): vectores originales del proyecto, sin material de terceros.
+- Uso de IA: se usó Claude como apoyo para generar la base del código; Sebastián Muñoz lo revisó, lo entiende y lo adaptó.

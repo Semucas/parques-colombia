@@ -1,0 +1,12 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 200 200" preserveAspectRatio="xMidYMid slice">
+  <defs><linearGradient id="s" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#8fe0f5"/><stop offset=".5" stop-color="#d9f6ff"/><stop offset="1" stop-color="#1f8fc4"/></linearGradient></defs>
+  <rect width="200" height="200" fill="url(#s)"/>
+  <circle cx="150" cy="40" r="22" fill="#fff6c8"/>
+  <rect y="96" width="200" height="104" fill="#1479ad"/><rect y="150" width="200" height="50" fill="#0e5f8c"/>
+  <g stroke="#bfeaff" stroke-width="3" fill="none" stroke-linecap="round"><path d="M0 108 q12-8 24 0 t24 0 t24 0 t24 0 t24 0 t24 0 t24 0 t24 0 t24 0"/><path d="M0 130 q12-8 24 0 t24 0 t24 0 t24 0 t24 0 t24 0 t24 0 t24 0 t24 0"/></g>
+  <path d="M100 96 Q96 60 78 44 Q96 52 100 66 Q104 52 122 44 Q104 60 100 96Z" fill="#26364d"/>
+  <path d="M82 100 Q100 90 118 100" stroke="#e9fbff" stroke-width="3" fill="none"/>
+  <path d="M0 120 Q10 70 40 80 Q60 40 66 110 Q40 150 0 160Z" fill="#1f7a3f"/>
+  <g fill="#2fae5a"><path d="M6 100 Q30 60 52 86 Q30 80 6 100Z"/><path d="M16 126 Q40 90 64 112 Q40 108 16 126Z"/></g>
+  <circle cx="30" cy="150" r="3" fill="#ffd95a"/><circle cx="48" cy="140" r="3" fill="#ffd95a"/>
+</svg>
