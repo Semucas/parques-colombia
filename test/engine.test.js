@@ -36,18 +36,18 @@ for (const n of [1, 2, 3, 4]) {
 // 2) Reglas puntuales
 let s = E.newState(players);
 s.dice = [3, 4]; s.avail = [true, true];
-assert.deepStrictEqual(E.choices(s, 0), [], 'sin 5 (ni en un dado ni en la suma) no se sale de la cárcel');
+assert.deepStrictEqual(E.choices(s, 0), [], 'sin un 5 en un dado no se sale de la cárcel');
 s.dice = [5, 2]; s.avail = [true, true];
 assert.deepStrictEqual(E.choices(s, 0).map(c => c.use), [0], 'el 5 de un dado saca ficha');
 s.dice = [1, 4]; s.avail = [true, true];
-assert.deepStrictEqual(E.choices(s, 0).map(c => c.use), [2], 'la suma 5 también saca ficha');
+assert.deepStrictEqual(E.choices(s, 0), [], 'los dados no se suman: 1 + 4 no saca ficha');
 
-// usar un dado por separado consume solo ese dado; la suma exige los dos
+// cada dado se usa por separado y consume solo ese dado
 s = E.newState(players);
 s.tokens[0][0] = 10; s.tokens[0][1] = 20;
 E.roll(s, 2, 3);
 assert.strictEqual(s.phase, 'move');
-assert.deepStrictEqual(E.values(s).map(o => o.v), [2, 3, 5]);
+assert.deepStrictEqual(E.values(s).map(o => o.v), [2, 3], 'sin opción de suma');
 E.apply(s, 0, 0, 0);                                    // usa el dado 1 (2) con la ficha 0
 assert.strictEqual(s.tokens[0][0], 12);
 assert.deepStrictEqual(E.values(s).map(o => o.v), [3], 'queda solo el otro dado');

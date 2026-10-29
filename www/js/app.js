@@ -260,13 +260,11 @@
     if (!G.rolling && s.dice[0]) { setFace('#dice1', s.dice[0]); setFace('#dice2', s.dice[1]); }
     $('#dice1').classList.toggle('used', s.phase === 'move' && !s.avail[0]);
     $('#dice2').classList.toggle('used', s.phase === 'move' && !s.avail[1]);
-    // Si hay que elegir, los dados se tocan directamente: el elegido brilla y el + suma los dos
+    // Si hay que elegir, se toca el dado que se quiere usar: el elegido brilla
     const choose = ch.length > 1;
     const has = u => ch.some(c => c.use === u);
     $('#dice1').classList.toggle('pickable', choose && has(0)); $('#dice2').classList.toggle('pickable', choose && has(1));
-    $('#dice1').classList.toggle('sel', choose && (G.sel === 0 || G.sel === 2)); $('#dice2').classList.toggle('sel', choose && (G.sel === 1 || G.sel === 2));
-    $('#btnPlus').classList.toggle('hidden', !(choose && has(2)));
-    $('#btnPlus').classList.toggle('sel', G.sel === 2);
+    $('#dice1').classList.toggle('sel', choose && G.sel === 0); $('#dice2').classList.toggle('sel', choose && G.sel === 1);
     $('#msg').textContent = statusText(mine, moves, ch);
   }
   function statusText(mine, moves, ch) {
@@ -275,7 +273,7 @@
     if (G.paused) return '⏸️ Juego en pausa';
     if (mine && s.phase === 'roll') return '¡Tu turno! Lanza los dados 🎲🎲';
     if (mine && s.phase === 'bonus') return '🎉 ¡Tres pares! Toca una ficha para sacarla del juego';
-    if (mine && s.phase === 'move') return ch.length > 1 ? 'Toca un dado (o el + para sumarlos) y luego una ficha' : (moves.length ? 'Toca la ficha que quieres mover' : 'No tienes jugadas…');
+    if (mine && s.phase === 'move') return ch.length > 1 ? 'Toca un dado y luego la ficha que quieres mover' : (moves.length ? 'Toca la ficha que quieres mover' : 'No tienes jugadas…');
     return `Turno de ${s.players[s.turn].name}…`;
   }
 
@@ -593,7 +591,7 @@
       if (s.phase === 'roll') $('#btnRoll').click();
       else if (s.phase === 'move' && isMine(s.turn) && Engine.choices(s, s.turn).some(c => c.use === use)) { G.sel = use; Sfx.play('click'); render(); }
     };
-    $('#dice1').onclick = () => pickDie(0); $('#dice2').onclick = () => pickDie(1); $('#btnPlus').onclick = () => pickDie(2);
+    $('#dice1').onclick = () => pickDie(0); $('#dice2').onclick = () => pickDie(1);
     $('#btnPause').onclick = () => { Sfx.play('click'); pauseGame(); };
     $('#btnExit').onclick = () => modal('<div class="em">🚪</div><h3>¿Salir de la partida?</h3><p>Se perderá el progreso de esta partida.</p>',
       [{ text: 'Seguir jugando', cls: 'green' }, { text: 'Salir', cls: 'red', fn: () => { leaveRoom(); go('home'); } }]);

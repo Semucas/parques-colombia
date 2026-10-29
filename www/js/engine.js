@@ -1,6 +1,6 @@
 /* Motor del parqués: lógica pura, sin DOM. Lo usan el modo offline, los bots y el online.
-   Reglas: se juega con DOS dados. Cada dado se puede usar por separado con una ficha, o se pueden sumar
-   para mover una sola ficha. Con un 5 (en un dado o en la suma) sale una ficha de la cárcel.
+   Reglas: se juega con DOS dados. Cada dado se usa por separado con una ficha (se deben usar los dos).
+   Con un 5 en un dado sale una ficha de la cárcel.
    El turno se repite SOLO si salen dos dados iguales (par). Tres pares seguidos: el jugador saca del juego
    una ficha, como si hubiera llegado a la llegada. */
 const Engine = (() => {
@@ -34,12 +34,11 @@ const Engine = (() => {
     return moves;
   }
 
-  // Usos posibles de los dados: 0 = dado 1, 1 = dado 2, 2 = suma de los dos (solo si ninguno se ha usado)
+  // Dados que aún no se han usado: use 0 = dado 1, use 1 = dado 2
   function values(s) {
     const o = [];
     if (s.avail[0]) o.push({ use: 0, v: s.dice[0] });
     if (s.avail[1]) o.push({ use: 1, v: s.dice[1] });
-    if (s.avail[0] && s.avail[1]) o.push({ use: 2, v: s.dice[0] + s.dice[1] });
     return o;
   }
   // Usos que tienen al menos una ficha que se pueda mover: [{use, v, moves}]
@@ -71,7 +70,7 @@ const Engine = (() => {
   }
 
   function apply(s, p, i, use) {
-    const v = use === 2 ? s.dice[0] + s.dice[1] : s.dice[use];
+    const v = s.dice[use];
     const t = s.tokens[p];
     const ev = { kind: 'move', p, i, d: v, captured: [], goal: false, exit: false };
     if (t[i] === -1) { t[i] = 0; ev.exit = true; } else t[i] += v;
@@ -86,7 +85,7 @@ const Engine = (() => {
         });
       }
     }
-    if (use === 2) s.avail = [false, false]; else s.avail[use] = false;
+    s.avail[use] = false;
     s.last = ev; s.seq++;
     if (checkWin(s, p, ev)) return ev;
     if (!s.avail[0] && !s.avail[1]) endTurn(s, p);
