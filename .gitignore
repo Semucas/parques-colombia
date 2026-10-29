@@ -6,3 +6,7 @@ android/local.properties
 *.jks
 .idea/
 
+# Firma de la app (nunca subir)
+keystore.properties
+*.jks
+*.keystore

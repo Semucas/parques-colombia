@@ -78,7 +78,7 @@ Para verlo en el celular por Wi‑Fi, abre `http://<IP-del-computador>:5173` en 
 
 ## Probar con el APK en el celular
 
-Requisitos: **Android Studio** (con el SDK de Android) y un **JDK entre 17 y 22**. Las versiones nuevas de Android Studio traen Java 25, que este proyecto (Gradle 8.10) no soporta; si es tu caso, instala un JDK 17, 21 o 22 y úsalo en `JAVA_HOME`. Si la ruta de tu carpeta tiene tildes (por ejemplo `Aplicaciones móviles`), el proyecto ya incluye `android.overridePathCheck=true` en `android/gradle.properties`.
+Requisitos: **Android Studio** (con el SDK de Android) y un **JDK entre 17 y 22**. Las versiones nuevas de Android Studio traen Java 25, que este proyecto (Gradle 8.11) no soporta; si es tu caso, instala un JDK 17, 21 o 22 y úsalo en `JAVA_HOME`. Si la ruta de tu carpeta tiene tildes (por ejemplo `Aplicaciones móviles`), el proyecto ya incluye `android.overridePathCheck=true` en `android/gradle.properties`.
 
 **Opción A: con Android Studio (la más fácil)**
 
@@ -111,7 +111,7 @@ El APK queda en `android/app/build/outputs/apk/debug/app-debug.apk`.
 
 Cada vez que cambies algo en `www/`, repite `npx cap sync android` antes de volver a compilar. El modo online necesita internet.
 
-**Para Google Play** hace falta un paquete firmado: *Build > Generate Signed Bundle / APK > Android App Bundle (.aab)* en Android Studio. Guarda el keystore en un lugar seguro (no lo subas al repositorio) y sube el `.aab` en Play Console con la ficha de la tienda, la política de privacidad y la clasificación de contenido.
+**Para Google Play** (apunta a Android 16, API 36) hace falta un paquete firmado: crea un archivo `android/keystore.properties` con `storeFile`, `storePassword`, `keyAlias` y `keyPassword` de tu llave de subida (está en `.gitignore`; en Windows escribe las tildes de la ruta como `ó`) y ejecuta `./gradlew bundleRelease`. El `.aab` queda en `android/app/build/outputs/bundle/release/app-release.aab`. Guarda la llave en un lugar seguro y no la subas al repositorio. Los textos y gráficos de la ficha están en `docs/play-store/` y la política de privacidad en [PRIVACIDAD.md](PRIVACIDAD.md).
 
 ## Modo online (Firebase)
 
