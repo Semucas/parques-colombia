@@ -5,7 +5,7 @@ const E = require('../www/js/engine.js');
 const players = [0, 1, 2, 3].map(i => ({ type: 'bot', name: 'B' + i, level: 3 }));
 const d6 = () => 1 + Math.floor(Math.random() * 6);
 
-// Juega un turno completo de un bot (lanza, mueve con cada dado, o saca ficha con tres pares)
+// Juega un paso de un bot: lanza, mueve con cada dado, saca fichas con par, o saca una ficha con tres pares
 function botTurnStep(s, level) {
   const p = s.turn;
   if (s.phase === 'roll') { E.roll(s, d6(), d6()); return; }
@@ -22,7 +22,7 @@ for (const n of [1, 2, 3, 4]) {
       const s = E.newState(players.map(p => ({ ...p, level })), n);
       let steps = 0;
       while (s.winner < 0) {
-        if (++steps > 40000) throw new Error('La partida no termina (n=' + n + ')');
+        if (++steps > 60000) throw new Error('La partida no termina (n=' + n + ')');
         botTurnStep(s, level);
         s.tokens.forEach(t => { assert.strictEqual(t.length, n); t.forEach(r => assert(r >= -1 && r <= E.GOAL, 'posición inválida ' + r)); });
       }
@@ -33,40 +33,85 @@ for (const n of [1, 2, 3, 4]) {
   }
 }
 
-// 2) Reglas puntuales
+// 2) Salir de la cárcel: solo con par
 let s = E.newState(players);
-s.dice = [3, 4]; s.avail = [true, true];
-assert.deepStrictEqual(E.choices(s, 0), [], 'sin un 5 en un dado no se sale de la cárcel');
-s.dice = [5, 2]; s.avail = [true, true];
-assert.deepStrictEqual(E.choices(s, 0).map(c => c.use), [0], 'el 5 de un dado saca ficha');
-s.dice = [1, 4]; s.avail = [true, true];
-assert.deepStrictEqual(E.choices(s, 0), [], 'los dados no se suman: 1 + 4 no saca ficha');
+E.roll(s, 5, 4);
+assert.deepStrictEqual(E.choices(s, 0), [], 'sin par no se sale de la cárcel (ni con un 5)');
+E.roll(s, 1, 4);
+assert.deepStrictEqual(E.choices(s, 0), [], 'un 1 y un 4 tampoco');
 
-// cada dado se usa por separado y consume solo ese dado
+// cualquier par (2-2 a 5-5): salen 2 fichas, a la SALIDA, y el turno se repite
+for (const d of [2, 3, 4, 5]) {
+  s = E.newState(players);
+  E.roll(s, d, d);
+  const ch = E.choices(s, 0);
+  assert.deepStrictEqual(ch.map(c => c.use), [2], 'con el par ' + d + '-' + d + ' hay que sacar fichas');
+  E.apply(s, 0, 0, 2);
+  assert.strictEqual(s.tokens[0].filter(r => r === 0).length, 2, 'salen 2 fichas con ' + d + '-' + d);
+  assert.strictEqual(s.tokens[0].filter(r => r === -1).length, 2, 'las otras 2 siguen en la cárcel');
+  assert.strictEqual(s.turn, 0, 'el par repite el turno');
+  assert.strictEqual(s.phase, 'roll');
+}
+// 1-1 y 6-6: salen todas
+for (const d of [1, 6]) {
+  s = E.newState(players);
+  E.roll(s, d, d);
+  E.apply(s, 0, 0, 2);
+  assert(s.tokens[0].every(r => r === 0), 'con ' + d + '-' + d + ' salen las 4 fichas');
+  assert.strictEqual(E.abs(0, 0), E.STARTS[0]);
+}
+// con pocas fichas salen las que haya
+s = E.newState(players, 3); E.roll(s, 3, 3); E.apply(s, 0, 0, 2);
+assert.strictEqual(s.tokens[0].filter(r => r === 0).length, 2);
+s = E.newState(players, 1); E.roll(s, 4, 4); E.apply(s, 0, 0, 2);
+assert.deepStrictEqual(s.tokens[0], [0], 'con 1 ficha sale esa ficha');
+
+// el par con fichas en el tablero: se puede sacar o mover con los dados
+s = E.newState(players); s.tokens[0] = [10, -1, -1, -1];
+E.roll(s, 2, 2);
+assert.deepStrictEqual(E.choices(s, 0).map(c => c.use), [0, 1, 2], 'dado 1, dado 2 o sacar fichas');
+
+// 3) Tres intentos para sacar un par cuando no hay fichas en juego
+s = E.newState(players);
+assert.strictEqual(s.tries, 3);
+E.roll(s, 1, 2); E.pass(s, 0);
+assert.strictEqual(s.turn, 0, '1.er intento fallido: sigue el mismo jugador');
+assert.strictEqual(s.phase, 'roll'); assert.strictEqual(s.tries, 2);
+E.roll(s, 3, 6); E.pass(s, 0);
+assert.strictEqual(s.turn, 0, '2.º intento fallido: sigue el mismo jugador'); assert.strictEqual(s.tries, 1);
+E.roll(s, 4, 5); E.pass(s, 0);
+assert.strictEqual(s.turn, 1, 'tras 3 intentos pasa el turno');
+assert.strictEqual(s.tries, 3, 'el siguiente jugador tampoco tiene fichas: 3 intentos');
+// con una ficha en el tablero no hay intentos extra
+s = E.newState(players); s.tokens[0] = [10, -1, -1, -1]; s.tries = 0;
+E.roll(s, 1, 2); s.avail = [false, false]; E.pass(s, 0);
+assert.strictEqual(s.turn, 1, 'con fichas en el tablero el turno pasa normal');
+
+// 4) Dados por separado
 s = E.newState(players);
 s.tokens[0][0] = 10; s.tokens[0][1] = 20;
 E.roll(s, 2, 3);
 assert.strictEqual(s.phase, 'move');
 assert.deepStrictEqual(E.values(s).map(o => o.v), [2, 3], 'sin opción de suma');
-E.apply(s, 0, 0, 0);                                    // usa el dado 1 (2) con la ficha 0
+E.apply(s, 0, 0, 0);
 assert.strictEqual(s.tokens[0][0], 12);
 assert.deepStrictEqual(E.values(s).map(o => o.v), [3], 'queda solo el otro dado');
 assert.strictEqual(s.turn, 0);
-E.apply(s, 0, 1, 1);                                    // usa el dado 2 (3) con la ficha 1
+E.apply(s, 0, 1, 1);
 assert.strictEqual(s.tokens[0][1], 23);
 assert.strictEqual(s.turn, 1, 'sin par, el turno pasa al siguiente');
 
-// repetir turno SOLO con par (capturar o llegar a la meta no lo repiten)
+// 5) Repetir turno SOLO con par (capturar o llegar a la meta no lo repiten)
 s = E.newState(players);
 s.tokens[0][0] = 20;
 const target = E.abs(0, 20);
 assert(!E.SAFE.has(target));
 s.tokens[1][0] = (((E.STARTS[1] - (target + 3)) % 68) + 68) % 68;   // 3 casillas antes del objetivo, en su sentido de avance
-s.turn = 1; E.roll(s, 3, 2); s.dbl = false;
+s.turn = 1; E.roll(s, 3, 2);
 const ev = E.apply(s, 1, 0, 0);
 assert.strictEqual(ev.captured.length, 1, 'captura');
 assert.strictEqual(s.tokens[0][0], -1, 'la ficha capturada vuelve a la cárcel');
-E.apply(s, 1, 0, 1);                                    // gasta el otro dado
+E.apply(s, 1, 0, 1);
 assert.strictEqual(s.turn, 2, 'capturar no da turno extra');
 
 s = E.newState(players);
@@ -75,7 +120,7 @@ E.apply(s, 0, 0, 0); E.apply(s, 0, 0, 1);
 assert.strictEqual(s.turn, 0, 'con par se repite el turno');
 assert.strictEqual(s.phase, 'roll');
 
-// tres pares seguidos: se saca una ficha del juego y el turno pasa
+// 6) Tres pares seguidos: se saca una ficha del juego y el turno pasa
 s = E.newState(players);
 s.tokens[0] = [10, -1, -1, -1];
 E.roll(s, 1, 1); E.apply(s, 0, 0, 0); E.apply(s, 0, 0, 1);
@@ -88,7 +133,7 @@ assert.strictEqual(s.tokens[0][0], E.GOAL, 'la ficha queda como si hubiera llega
 assert.strictEqual(s.turn, 1);
 assert.strictEqual(s.dbls, 0);
 
-// casilla segura: no hay captura
+// 7) Casillas seguras y meta
 s = E.newState(players);
 s.tokens[0][0] = (((E.STARTS[0] - E.STARTS[2]) % 68) + 68) % 68;
 s.turn = 1; s.tokens[1][0] = (((E.STARTS[1] - (E.STARTS[2] + 2)) % 68) + 68) % 68;
@@ -96,7 +141,6 @@ s.dice = [2, 6]; s.avail = [true, true];
 const ev2 = E.apply(s, 1, 0, 0);
 assert.strictEqual(ev2.captured.length, 0, 'no se captura en casillas seguras');
 
-// meta exacta
 s = E.newState(players); s.tokens[0][0] = E.GOAL - 2;
 assert.deepStrictEqual(E.legalMoves(s, 0, 3), [], 'no se pasa de la meta');
 assert.deepStrictEqual(E.legalMoves(s, 0, 2), [0]);

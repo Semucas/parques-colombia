@@ -49,7 +49,7 @@ Sube el `.aab` en Google Play Console (cuenta de desarrollador, ficha de tienda,
 ## Reglas implementadas
 
 - De 1 a 4 fichas por jugador (se elige al empezar) y **dos dados**. Cada dado se juega por separado con una ficha, y hay que usar los dos.
-- **Con un 5** en un dado sale una ficha de la cárcel, a su casilla SALIDA.
+- **De la cárcel se sale con un par** (los dos dados iguales), a la casilla SALIDA: con **1-1 o 6-6 salen todas** las fichas de la cárcel y con cualquier otro par (2-2, 3-3, 4-4, 5-5) salen **2**. Si no hay fichas en juego, el jugador tiene **hasta 3 intentos** por turno para sacar un par. Con un par y fichas en el tablero se puede sacar de la cárcel (tocando una ficha de la cárcel) o mover con los dados.
 - Cada jugador tiene su pasillo y su FIN en el brazo pegado a su cárcel: Caribe (amarillo, abajo-izquierda) la izquierda, Pacífico (azul, arriba-izquierda) arriba, Andina (rojo, arriba-derecha) la derecha y Amazonía (verde, abajo-derecha) abajo.
 - La SALIDA está en la 5.ª casilla del brazo, en el lado de su cárcel; los SEGUROS laterales, en el lado contrario. Las fichas avanzan en **sentido contrario a las manecillas del reloj** y entran a su pasillo por la punta de su brazo.
 - **El turno se repite solo si salen dos dados iguales (par).** Capturar o llegar a la meta no lo repiten.

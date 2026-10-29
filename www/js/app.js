@@ -238,12 +238,15 @@
       setTokenPos(G.tokenEls[p][i], cx + ox, cy + oy);
     }));
     const mine = isMine(s.turn) && s.winner < 0 && !G.anim && !G.paused;
-    let ch = [], moves = [];
+    let ch = [], dch = [], moves = [];
     if (mine && s.phase === 'move') {
       ch = Engine.choices(s, s.turn);
-      if (!ch.some(c => c.use === G.sel)) G.sel = ch.length ? ch[0].use : 0;
-      const cur = ch.find(c => c.use === G.sel);
-      moves = cur ? cur.moves : [];
+      dch = ch.filter(c => c.use !== 2);                      // opciones con un dado (use 2 = sacar fichas con el par)
+      if (!dch.some(c => c.use === G.sel)) G.sel = dch.length ? dch[0].use : 0;
+      const cur = dch.find(c => c.use === G.sel);
+      moves = cur ? cur.moves.slice() : [];
+      const ex = ch.find(c => c.use === 2);
+      if (ex) moves = moves.concat(ex.moves);                 // las fichas de la cárcel también se pueden tocar
     } else if (mine && s.phase === 'bonus') moves = Engine.bonusTokens(s, s.turn);
     G.tokenEls.forEach((arr, p) => arr.forEach((el, i) => el.classList.toggle('movable', p === s.turn && moves.includes(i))));
     G.tokenEls.forEach((arr, p) => arr.forEach(el => el.classList.toggle('turn', p === s.turn && s.winner < 0)));   // las fichas de quien juega brillan
@@ -261,8 +264,8 @@
     $('#dice1').classList.toggle('used', s.phase === 'move' && !s.avail[0]);
     $('#dice2').classList.toggle('used', s.phase === 'move' && !s.avail[1]);
     // Si hay que elegir, se toca el dado que se quiere usar: el elegido brilla
-    const choose = ch.length > 1;
-    const has = u => ch.some(c => c.use === u);
+    const choose = dch.length > 1;
+    const has = u => dch.some(c => c.use === u);
     $('#dice1').classList.toggle('pickable', choose && has(0)); $('#dice2').classList.toggle('pickable', choose && has(1));
     $('#dice1').classList.toggle('sel', choose && G.sel === 0); $('#dice2').classList.toggle('sel', choose && G.sel === 1);
     $('#msg').textContent = statusText(mine, moves, ch);
@@ -271,9 +274,16 @@
     const s = G.s;
     if (s.winner >= 0) return `🏆 Ganó ${s.players[s.winner].name}`;
     if (G.paused) return '⏸️ Juego en pausa';
-    if (mine && s.phase === 'roll') return s.dbls > 0 ? '¡Par! Lanza otra vez 🎲🎲' : '¡Tu turno! Lanza los dados 🎲🎲';
+    if (mine && s.phase === 'roll') {
+      if (Engine.boardCount(s, s.turn) === 0 && s.tries > 0) return `Sin fichas en juego: saca un par 🎲🎲 (intento ${4 - s.tries} de 3)`;
+      return s.dbls > 0 ? '¡Par! Lanza otra vez 🎲🎲' : '¡Tu turno! Lanza los dados 🎲🎲';
+    }
     if (mine && s.phase === 'bonus') return '🎉 ¡Tres pares! Toca una ficha para sacarla del juego';
-    if (mine && s.phase === 'move') return ch.length > 1 ? 'Toca un dado y luego la ficha que quieres mover' : (moves.length ? 'Toca la ficha que quieres mover' : 'No tienes jugadas…');
+    if (mine && s.phase === 'move') {
+      const ex = ch.find(c => c.use === 2), dch = ch.filter(c => c.use !== 2);
+      if (ex) return `¡Par! Toca una ficha de la cárcel para sacar ${Engine.exitCount(s, s.turn)}` + (dch.length ? ' (o mueve con un dado)' : '');
+      return dch.length > 1 ? 'Toca un dado y luego la ficha que quieres mover' : (moves.length ? 'Toca la ficha que quieres mover' : 'No tienes jugadas…');
+    }
     return `Turno de ${s.players[s.turn].name}…`;
   }
 
@@ -348,6 +358,7 @@
     } else {
       const ch = Engine.choices(s, p);
       if (!ch.length) later(doPass, PACE.pass);
+      else if (ch.length === 1 && ch[0].use === 2) later(() => doMove(ch[0].moves[0], 2), human ? PACE.single : PACE.botMove);
       else if (ch.length === 1 && ch[0].moves.length === 1) later(() => doMove(ch[0].moves[0], ch[0].use), human ? PACE.single : PACE.botMove);
       else if (human) startTurnTimer(() => { const c = Engine.botChoose(s, p, 3); doMove(c.i, c.use); });
       else later(() => { const c = Engine.botChoose(s, p, pl.level || G.level); doMove(c.i, c.use); }, PACE.botMove);
@@ -360,7 +371,11 @@
   }
   function onNewState() {
     const fresh = G.fxSeq !== G.s.seq;
-    if (fresh) { G.fxSeq = G.s.seq; if (G.s.last && G.s.last.kind === 'move') startMoveAnim(G.s.last); }
+    if (fresh) {
+      G.fxSeq = G.s.seq;
+      if (G.s.last && G.s.last.kind === 'move') startMoveAnim(G.s.last);
+      else if (G.s.last && G.s.last.kind === 'exit') G.busyUntil = Date.now() + 900;   // las fichas salen de la cárcel a la SALIDA
+    }
     render();
     if (fresh) playFx(G.s.last);
     schedule();
@@ -386,7 +401,12 @@
     if (!s || s.winner >= 0 || s.turn !== p || !isMine(p) || G.anim || G.paused) return;
     if (s.phase === 'bonus') { if (Engine.bonusTokens(s, p).includes(i)) { clearTimers(); doBonus(i); } return; }
     if (s.phase !== 'move') return;
-    const c = Engine.choices(s, p).find(c => c.use === G.sel);
+    const ch = Engine.choices(s, p);
+    if (s.tokens[p][i] === -1) {                              // ficha en la cárcel: se saca con el par
+      if (ch.some(c => c.use === 2)) { clearTimers(); doMove(i, 2); }
+      return;
+    }
+    const c = ch.find(c => c.use === G.sel && c.use !== 2);
     if (!c || !c.moves.includes(i)) return;
     clearTimers(); doMove(i, c.use);
   }
@@ -398,6 +418,8 @@
       if (ev.triple) { Sfx.play('goal'); confetti(40); }
       else if (ev.dbl) Sfx.play('six');
       if (ev.d[0] === 6 && ev.d[1] === 6 && ev.p === G.mySeat) eggSixes();
+    } else if (ev.kind === 'exit') {
+      Sfx.play('exit'); confetti(10);
     }                                   // los movimientos suenan al terminar su animación (moveFx)
   }
 
@@ -534,7 +556,7 @@
     st.players = Array.from({ length: 4 }, (_, i) => st.players[i]);
     st.last = st.last || {}; st.last.captured = st.last.captured || [];
     st.dice = [(st.dice && st.dice[0]) || 0, (st.dice && st.dice[1]) || 0];
-    st.avail = [!!(st.avail && st.avail[0]), !!(st.avail && st.avail[1])]; st.dbl = !!st.dbl; st.dbls = st.dbls || 0;
+    st.avail = [!!(st.avail && st.avail[0]), !!(st.avail && st.avail[1])]; st.dbl = !!st.dbl; st.dbls = st.dbls || 0; st.tries = st.tries || 0;
     st.winner = st.winner == null ? -1 : st.winner;
     return st;
   }

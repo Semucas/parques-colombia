@@ -1,8 +1,9 @@
 /* Motor del parqués: lógica pura, sin DOM. Lo usan el modo offline, los bots y el online.
    Reglas: se juega con DOS dados. Cada dado se usa por separado con una ficha (se deben usar los dos).
-   Con un 5 en un dado sale una ficha de la cárcel.
+   Cárcel: solo se sale con un PAR. Con 1-1 o 6-6 salen todas las fichas de la cárcel; con cualquier otro par salen 2.
+   Si no hay fichas en juego, el jugador tiene hasta 3 intentos por turno para sacar un par.
    El turno se repite SOLO si salen dos dados iguales (par). Tres pares seguidos: el jugador saca del juego
-   una ficha, como si hubiera llegado a la llegada. */
+   una ficha, como si hubiera llegado a la meta. */
 const Engine = (() => {
   const TRACK = 68;                  // casillas del circuito
   // Brazos (índice absoluto de sus 17 casillas): 0 arriba = 0..16, 1 derecha = 17..33, 2 abajo = 34..50, 3 izquierda = 51..67.
@@ -22,18 +23,22 @@ const Engine = (() => {
   function newState(players, n = 4) {
     return {
       n, tokens: [0, 1, 2, 3].map(() => Array.from({ length: n }, () => -1)),
-      turn: 0, dice: [0, 0], avail: [false, false], dbl: false, dbls: 0,
+      turn: 0, dice: [0, 0], avail: [false, false], dbl: false, dbls: 0, tries: 3,
       phase: 'roll', winner: -1, seq: 0,
       players, last: { kind: 'start', captured: [] }
     };
   }
 
+  // Fichas que están en el tablero (ni en la cárcel ni en la meta) y fichas en la cárcel
+  const boardCount = (s, p) => s.tokens[p].filter(r => r >= 0 && r < GOAL).length;
+  const jailTokens = (s, p) => { const j = []; s.tokens[p].forEach((r, i) => { if (r === -1) j.push(i); }); return j; };
+  // Con un par salen 2 fichas; con 1-1 o 6-6 salen todas las de la cárcel
+  const exitCount = (s, p) => { const j = jailTokens(s, p).length, d = s.dice[0]; return d === 1 || d === 6 ? j : Math.min(2, j); };
+
+  // Con los dados solo se mueven fichas que ya están en el tablero (de la cárcel se sale con par)
   function legalMoves(s, p, v) {
     const moves = [];
-    s.tokens[p].forEach((r, i) => {
-      if (r === -1) { if (v === 5) moves.push(i); }
-      else if (r < GOAL && r + v <= GOAL) moves.push(i);
-    });
+    s.tokens[p].forEach((r, i) => { if (r >= 0 && r < GOAL && r + v <= GOAL) moves.push(i); });
     return moves;
   }
 
@@ -45,8 +50,14 @@ const Engine = (() => {
     return o;
   }
   // Usos que tienen al menos una ficha que se pueda mover: [{use, v, moves}]
+  // use 2 = sacar fichas de la cárcel con el par (gasta los dos dados)
   function choices(s, p) {
-    return values(s).map(o => ({ ...o, moves: legalMoves(s, p, o.v) })).filter(o => o.moves.length);
+    const out = values(s).map(o => ({ ...o, moves: legalMoves(s, p, o.v) })).filter(o => o.moves.length);
+    if (s.dbl && s.avail[0] && s.avail[1]) {
+      const j = jailTokens(s, p);
+      if (j.length) out.push({ use: 2, v: s.dice[0], moves: j, exit: true });
+    }
+    return out;
   }
 
   function roll(s, d1, d2) {
@@ -63,6 +74,7 @@ const Engine = (() => {
   function endTurn(s, p) {
     const extra = s.dbl && s.dbls < 3;                      // solo se repite con par (y no el tercero)
     if (!extra) { s.turn = (p + 1) % 4; s.dbls = 0; }
+    s.tries = boardCount(s, s.turn) === 0 ? 3 : 0;          // sin fichas en juego: 3 intentos para sacar un par
     s.dice = [0, 0]; s.avail = [false, false]; s.dbl = false;
     s.phase = 'roll'; s.seq++;
   }
@@ -72,11 +84,23 @@ const Engine = (() => {
     return false;
   }
 
+  // Sacar fichas de la cárcel con un par: la ficha elegida y las que correspondan salen a la SALIDA (casilla segura)
+  function exitWithPair(s, p, i) {
+    const order = [i, ...jailTokens(s, p).filter(x => x !== i)].slice(0, exitCount(s, p));
+    order.forEach(k => { s.tokens[p][k] = 0; });
+    const ev = { kind: 'exit', p, i, exited: order, d: 0, captured: [], goal: false, exit: true };
+    s.avail = [false, false];
+    s.last = ev; s.seq++;
+    endTurn(s, p);                                           // el par repite el turno
+    return ev;
+  }
+
   function apply(s, p, i, use) {
+    if (use === 2) return exitWithPair(s, p, i);
     const v = s.dice[use];
     const t = s.tokens[p];
     const ev = { kind: 'move', p, i, d: v, captured: [], goal: false, exit: false };
-    if (t[i] === -1) { t[i] = 0; ev.exit = true; } else t[i] += v;
+    t[i] += v;
     const r = t[i];
     if (r === GOAL) ev.goal = true;
     else if (r <= LAST && !SAFE.has(abs(p, r))) {
@@ -114,6 +138,10 @@ const Engine = (() => {
   function pass(s, p) {
     s.last = { kind: 'pass', p, d: 0, captured: [] };
     s.seq++;
+    if (s.tries > 1 && boardCount(s, p) === 0 && !s.dbl) {     // sin fichas en juego: otro intento (hasta 3)
+      s.tries--; s.dice = [0, 0]; s.avail = [false, false]; s.phase = 'roll';
+      return;
+    }
     endTurn(s, p);
   }
 
@@ -143,9 +171,13 @@ const Engine = (() => {
       const c = JSON.parse(JSON.stringify(s));
       const ev = apply(c, p, cd.i, cd.use);
       const r = c.tokens[p][cd.i];
+      if (ev.kind === 'exit') {                                // sacar fichas con el par casi siempre conviene
+        const sc = 90 * ev.exited.length + Math.random() * 3 + (boardCount(s, p) === 0 ? 100 : 0);
+        if (sc > bestScore) { bestScore = sc; best = cd; }
+        continue;
+      }
       let score = Math.random() * 3 + ev.captured.length * 100 + r * 0.3;
       if (ev.goal) score += 80;
-      if (ev.exit) score += 60;
       if (level >= 3) {
         if (r > LAST) score += 25;
         else if (SAFE.has(abs(p, r))) score += 30;
@@ -163,7 +195,7 @@ const Engine = (() => {
     return bonusTokens(s, p).reduce((b, i) => (t[i] > t[b] ? i : b));
   }
 
-  return { TRACK, STARTS, MOUTHS, SIDE_SAFES, LAST, GOAL, SAFE, abs, newState, legalMoves, values, choices, roll, apply,
+  return { TRACK, STARTS, MOUTHS, SIDE_SAFES, LAST, GOAL, SAFE, abs, newState, legalMoves, values, choices, boardCount, jailTokens, exitCount, roll, apply,
            bonusTokens, takeOut, pass, botChoose, botBonus };
 })();
 
