@@ -4,11 +4,13 @@
 const Online = (() => {
   let db = null, roomRef = null, handler = null, code = null;
 
+  // Id del jugador (en la base simulada de pruebas, cada pestaña es un jugador distinto)
+  const idStore = () => (window.FIREBASE_MOCK ? sessionStorage : localStorage);
   let uid;
-  try { uid = localStorage.getItem('parques_uid'); } catch (e) { /* sin storage */ }
+  try { uid = idStore().getItem('parques_uid'); } catch (e) { /* sin storage */ }
   if (!uid) {
     uid = 'u' + Math.random().toString(36).slice(2, 10);
-    try { localStorage.setItem('parques_uid', uid); } catch (e) { /* sin storage */ }
+    try { idStore().setItem('parques_uid', uid); } catch (e) { /* sin storage */ }
   }
 
   const ready = () => !!(window.firebase && typeof FIREBASE_CONFIG !== 'undefined' &&
@@ -68,10 +70,11 @@ const Online = (() => {
   };
 
   async function startGame(state) {
-    await roomRef.update({ started: true, state });
+    await roomRef.update({ started: true, state: JSON.parse(JSON.stringify(state)) });
   }
 
-  function push(state) { if (roomRef) roomRef.child('state').set(state); }
+  // Firebase no acepta valores undefined: se limpia el estado antes de escribirlo
+  function push(state) { if (roomRef) roomRef.child('state').set(JSON.parse(JSON.stringify(state))); }
 
   async function leave(isHost) {
     if (!roomRef) return;

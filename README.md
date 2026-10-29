@@ -38,13 +38,15 @@ Sube el `.aab` en Google Play Console (cuenta de desarrollador, ficha de tienda,
 
 ## Configurar el modo online (Firebase)
 
-1. Crea un proyecto en <https://console.firebase.google.com> y agrega una app **Web**.
-2. Activa **Realtime Database** y pega la configuración en `www/js/firebase-config.js`.
-3. Reglas para desarrollo (ajústalas antes de publicar):
-   ```json
-   { "rules": { "rooms": { ".read": true, ".write": true } } }
-   ```
-4. Uno crea la sala y comparte el código de 4 letras; los demás se unen. Los puestos libres los juegan bots que mueve el anfitrión.
+1. Entra a <https://console.firebase.google.com> y crea un proyecto (puedes desactivar Google Analytics).
+2. En *Configuración del proyecto > Tus apps* agrega una app **Web** (`</>`) y copia el objeto `firebaseConfig`.
+3. Pégalo en `www/js/firebase-config.js` (`apiKey`, `authDomain`, `databaseURL`, `projectId`, `appId`).
+4. En *Compilación > Realtime Database* pulsa **Crear base de datos**, elige la región más cercana y en la pestaña **Reglas** pega el contenido de `database.rules.json` (sirve para el trabajo; para producción conviene restringir el acceso con Firebase Auth) y publica.
+5. Prueba con dos celulares (o dos pestañas): uno entra a *Jugar online > Crear sala* y comparte el código de 4 letras; el otro entra con *Unirme*. El anfitrión pulsa *Empezar partida*; los puestos libres los juegan bots que mueve el anfitrión.
+
+### Probar el modo online sin Firebase
+
+Abre `http://localhost:5173/index.html?mock` en **dos pestañas** del mismo navegador: usan una base de datos simulada (`www/js/firebase-mock.js`) que imita Firebase, así se puede probar toda la lógica online (salas, asientos, turnos, bots) sin cuenta ni internet. En la app normal ese archivo no hace nada.
 
 ## Reglas implementadas
 
@@ -71,7 +73,7 @@ El jugador escoge su tipo de colombiano (costeño, paisa, rolo, caleño, llanero
 
 ## Créditos técnicos
 
-- Música del inicio: "Atlas • Colombia" de Vadim_Makes_Sound, vía Pixabay (Licencia de contenido de Pixabay). El archivo no se sube al repositorio.
+- Música del inicio: "Atlas • Colombia" de Vadim_Makes_Sound, vía Pixabay (Licencia de contenido de Pixabay). El archivo está en `www/assets/audio/musica.mp3`.
 - Música de la partida (más urbana): `www/assets/audio/musica-juego.mp3`; si no existe, suena un beat de reggaetón generado por código (composición propia).
 - Ilustraciones (paisaje, sombrero vueltiao, grano de café, patrón de mochila y las 10 escenas de las regiones en `www/assets/img/tipos`): vectores originales del proyecto, sin material de terceros.
 - Uso de IA: se usó Claude como apoyo para generar la base del código; Sebastián Muñoz lo revisó, lo entiende y lo adaptó.
