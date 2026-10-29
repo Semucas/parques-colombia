@@ -555,8 +555,10 @@
 
   async function enterRoom(promise) {
     try {
+      $('#lobbyErr').textContent = 'Conectando…';
+      // si la base no responde (sin internet, reglas sin publicar...) se avisa en vez de quedarse esperando
+      await Promise.race([promise, new Promise((_, rej) => setTimeout(() => rej(new Error('No hay respuesta de la base de datos. Revisa tu internet y que las reglas de Firebase estén publicadas.')), 15000))]);
       $('#lobbyErr').textContent = '';
-      await promise;
       showLobbyRoom(true);
       Online.listen(onRoom);
     } catch (e) { $('#lobbyErr').textContent = e.message || 'No se pudo conectar. Revisa tu internet.'; }
