@@ -265,6 +265,8 @@
     } else if (mine && s.phase === 'bonus') moves = Engine.bonusTokens(s, s.turn);
     renderPick(ch);
     G.tokenEls.forEach((arr, p) => arr.forEach((el, i) => el.classList.toggle('movable', p === s.turn && moves.includes(i))));
+    G.tokenEls.forEach((arr, p) => arr.forEach(el => el.classList.toggle('turn', p === s.turn && s.winner < 0)));   // las fichas de quien juega brillan
+    $('#board').classList.toggle('has-turn', s.winner < 0);
     s.players.forEach((pl, p) => {              // nombre, personaje y progreso en la esquina de cada jugador
       const j = G.jailEls[p];
       j.classList.toggle('active', s.turn === p && s.winner < 0);

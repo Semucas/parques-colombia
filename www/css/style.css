@@ -245,3 +245,13 @@ input { width: 100%; font: inherit; font-size: 18px; padding: 12px 14px; border-
   background: rgba(255,255,255,.18); box-shadow: 0 4px 0 rgba(0,0,0,.25); cursor: pointer; }
 .tp.sel { background: var(--yellow); color: #3a2f00; border-color: #fff; transform: scale(1.1); }
 #lobbyTok { display: flex; flex-direction: column; align-items: center; gap: 6px; }
+
+/* Turno actual: la esquina del jugador brilla y pulsa, las demás se atenúan */
+.board.has-turn .jail:not(.active) { filter: brightness(.68) saturate(.75); }
+.jail { transition: filter .35s, transform .35s; }
+.jail.active { transform: scale(1.05); filter: brightness(1.12); z-index: 2;
+  box-shadow: 0 0 0 4px #fff, 0 0 24px 8px var(--c); animation: turnGlow 1s ease-in-out infinite; }
+@keyframes turnGlow { 50% { box-shadow: 0 0 0 4px #fff, 0 0 38px 16px var(--c); } }
+.jail.active .ptag { background: #fff; color: #222; }
+.token.turn { box-shadow: 0 0 0 2px #fff, 0 0 9px 4px var(--c); }
+.jail.active .ptag .pn { color: #222; text-shadow: none; }
