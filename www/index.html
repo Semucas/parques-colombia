@@ -1,0 +1,150 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no, viewport-fit=cover">
+  <meta name="theme-color" content="#0b2a6b">
+  <title>Parqués Parce</title>
+  <link rel="stylesheet" href="css/style.css">
+</head>
+<body>
+<div id="app">
+
+  <!-- 1. SPLASH -->
+  <section id="splash" class="screen active">
+    <div class="splash-logo">
+      <div class="dice-logo">🎲</div>
+      <h1>Parqués<br><span>Parce</span></h1>
+      <p>El parqués de toda Colombia 🇨🇴</p>
+    </div>
+    <div class="loadbar"><i></i></div>
+    <small class="tap">Toca para continuar</small>
+  </section>
+
+  <!-- 2. HOME -->
+  <section id="home" class="screen">
+    <header class="top">
+      <button class="icon" id="btnSound" title="Sonido">🔊</button>
+      <button class="icon" id="btnMusic" title="Música">🎵</button>
+    </header>
+    <img class="deco deco-sombrero" src="assets/img/sombrero.svg" alt="">
+    <img class="deco deco-cafe" src="assets/img/cafe.svg" alt="">
+    <div class="home-logo" id="logoEgg"><div class="dice-logo">🎲</div><h2>Parqués <span>Parce</span></h2></div>
+    <p id="hello" class="hello"></p>
+    <div class="menu">
+      <button class="btn big yellow" id="btnOffline">🤖 Jugar offline</button>
+      <button class="btn big blue" id="btnOnline">👥 Jugar online</button>
+      <button class="btn red" data-go="scores">🏆 Puntajes</button>
+      <button class="btn purple" data-go="profile">👤 Perfil</button>
+      <button class="btn green" data-go="credits">ℹ️ Créditos</button>
+    </div>
+  </section>
+
+  <!-- Perfil: el nombre se pide una sola vez (primera vez) y aquí se puede cambiar -->
+  <section id="profile" class="screen">
+    <header class="top"><button class="icon" id="btnProfileBack">⬅️</button><h2>Perfil</h2>
+      <span class="top-actions"><button class="icon" id="btnMusic2" title="Música">🎵</button><button class="icon" id="btnSound3" title="Sonido">🔊</button></span></header>
+    <div class="profile-av">🧑‍🌾</div>
+    <p class="sub" id="profileMsg">Escribe tu nombre de parcero</p>
+    <label class="field">Tu nombre
+      <input id="inpName" maxlength="14" placeholder="Ej: Camila" autocomplete="off">
+    </label>
+    <p class="err" id="profileErr"></p>
+    <button class="btn big yellow" id="btnSaveName">💾 Guardar</button>
+  </section>
+
+  <!-- Selección de nivel (offline) -->
+  <section id="levels" class="screen">
+    <header class="top"><button class="icon" data-go="home">⬅️</button><h2>Elige tu reto</h2><span></span></header>
+    <p class="sub">Escoge tu región (tu color)</p>
+    <div class="region-pick" id="regionPick"></div>
+    <div class="levels" id="levelList"></div>
+  </section>
+
+  <!-- Lobby online -->
+  <section id="lobby" class="screen">
+    <header class="top"><button class="icon" id="btnLobbyBack">⬅️</button><h2>Jugar online</h2><span></span></header>
+    <div id="lobbyNoConfig" class="card hidden">
+      <b>Falta configurar Firebase</b>
+      <p>Abre <code>www/js/firebase-config.js</code> y pega la configuración de tu proyecto. El modo offline funciona sin esto.</p>
+    </div>
+    <div id="lobbyMenu">
+      <button class="btn big blue" id="btnCreate">➕ Crear sala</button>
+      <div class="join-row">
+        <input id="inpCode" maxlength="4" placeholder="CÓDIGO" autocomplete="off">
+        <button class="btn green" id="btnJoin">Unirme</button>
+      </div>
+      <p id="lobbyErr" class="err"></p>
+    </div>
+    <div id="lobbyRoom" class="hidden">
+      <p class="sub">Comparte este código con tus amigos</p>
+      <div class="code" id="roomCode">----</div>
+      <ul class="seats" id="seatList"></ul>
+      <p class="sub small">Los puestos vacíos los juegan bots.</p>
+      <button class="btn big yellow" id="btnStart">▶️ Empezar partida</button>
+      <p id="waitHost" class="sub hidden">Esperando a que el anfitrión empiece…</p>
+    </div>
+  </section>
+
+  <!-- 3. JUEGO -->
+  <section id="game" class="screen">
+    <header class="top game-top">
+      <button class="icon" id="btnExit">✖️</button>
+      <div id="gameTitle" class="gtitle"></div>
+      <button class="icon" id="btnSound2">🔊</button>
+    </header>
+    <div class="chips" id="chips"></div>
+    <div class="board-wrap"><div class="board" id="board"></div></div>
+    <div id="msg" class="msg"></div>
+    <div class="tbar"><i id="tbar"></i></div>
+    <div class="controls">
+      <div id="dice" class="dice"></div>
+      <button class="btn big yellow" id="btnRoll">🎲 Lanzar</button>
+    </div>
+  </section>
+
+  <!-- 4. PUNTAJE -->
+  <section id="scores" class="screen">
+    <header class="top"><button class="icon" data-go="home">⬅️</button><h2>Puntajes</h2><span></span></header>
+    <div id="resultBanner" class="card hidden"></div>
+    <div class="stats" id="statsRow"></div>
+    <ol class="rank" id="rankList"></ol>
+    <div class="menu">
+      <button class="btn yellow" id="btnAgain">🔁 Jugar de nuevo</button>
+      <button class="btn blue" data-go="home">🏠 Inicio</button>
+    </div>
+  </section>
+
+  <!-- 5. CRÉDITOS -->
+  <section id="credits" class="screen">
+    <header class="top"><button class="icon" data-go="home">⬅️</button><h2>Créditos</h2><span></span></header>
+    <div class="card">
+      <h3>Parqués Parce <span id="coffee">☕</span></h3>
+      <p>Juego de la materia Aplicaciones Móviles – UPB.</p>
+      <p><b>Equipo:</b> Nombre 1 · Nombre 2 · Nombre 3</p>
+      <p><b>Tecnología:</b> HTML, CSS y JavaScript empaquetados con Capacitor; sonidos con WebAudio; modo online con Firebase.</p>
+      <p><b>IA:</b> se usó Claude como apoyo para generar la base del código; el equipo lo revisó, lo entiende y lo adaptó.</p>
+      <p><b>Música:</b> "Atlas • Colombia" de Vadim_Makes_Sound, vía Pixabay (Licencia de contenido de Pixabay).</p>
+      <p><b>Ilustraciones:</b> paisaje, sombrero vueltiao, grano de café y patrón de mochila: vectores originales del proyecto, sin material de terceros.</p>
+      <p><b>Fotos:</b> agrega las imágenes de cada región en <code>assets/img</code> y cita aquí sus autores.</p>
+    </div>
+    <div class="regions" id="creditRegions"></div>
+    <p class="sub small" id="eggHint"></p>
+  </section>
+
+</div>
+
+<div id="toast"></div>
+<div id="confetti"></div>
+<div id="modal" class="hidden"><div class="modal-card" id="modalCard"></div></div>
+
+<script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-app-compat.js" onerror="this.remove()"></script>
+<script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-database-compat.js" onerror="this.remove()"></script>
+<script src="js/firebase-config.js"></script>
+<script src="js/store.js"></script>
+<script src="js/audio.js"></script>
+<script src="js/engine.js"></script>
+<script src="js/online.js"></script>
+<script src="js/app.js"></script>
+</body>
+</html>
