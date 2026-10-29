@@ -58,9 +58,12 @@ Sube el `.aab` en Google Play Console (cuenta de desarrollador, ficha de tienda,
 - Para entrar a la meta se necesita la tirada exacta.
 - Offline: botón ⏸️ para pausar (la partida también se pausa sola si sales de la app).
 
-## Pendiente del equipo
+## Pendiente
 
-- Poner los nombres reales del equipo en `index.html` (Créditos) y agregar las fotos en `www/assets/img`.
-- Wireframes en papel y Figma en escala de grises (pantallas: Splash, Home, Niveles, Lobby, Juego, Puntajes, Créditos).
-- Cada integrante debe hacer commits propios (criterio "participación en repositorio").
-- Justificación del uso de IA: cada integrante debe poder explicar `engine.js` (reglas), `app.js` (turnos) y `online.js` (salas).
+- Wireframes en papel y Figma en escala de grises (pantallas: Splash, Home, Perfil, Niveles, Lobby, Juego, Puntajes, Créditos).
+- Subir commits propios con frecuencia (criterio "participación en repositorio").
+- Justificación del uso de IA: poder explicar `engine.js` (reglas), `app.js` (turnos) y `online.js` (salas).
+
+## Perfil
+
+El jugador escoge su tipo de colombiano (costeño, paisa, rolo, caleño, llanero, santandereano, boyacense, pastuso, chocoano o amazónico); su emoji es su personaje en el tablero y sale en el Home y en la sala online.

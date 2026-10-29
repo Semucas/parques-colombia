@@ -5,7 +5,7 @@
   <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no, viewport-fit=cover">
   <meta name="theme-color" content="#0b2a6b">
   <title>Parqués Parce</title>
-  <link rel="stylesheet" href="css/style.css?v=18">
+  <link rel="stylesheet" href="css/style.css?v=20">
 </head>
 <body>
 <div id="app">
@@ -44,11 +44,14 @@
   <section id="profile" class="screen">
     <header class="top"><button class="icon" id="btnProfileBack">⬅️</button><h2>Perfil</h2>
       <span class="top-actions"><button class="icon" id="btnMusic2" title="Música">🎵</button><button class="icon" id="btnSound3" title="Sonido">🔊</button></span></header>
-    <div class="profile-av">🧑‍🌾</div>
+    <div class="profile-av" id="profileAv">☕</div>
+    <p class="phrase" id="typePhrase"></p>
     <p class="sub" id="profileMsg">Escribe tu nombre de parcero</p>
     <label class="field">Tu nombre
       <input id="inpName" maxlength="14" placeholder="Ej: Camila" autocomplete="off">
     </label>
+    <p class="sub">¿De dónde eres? Escoge tu tipo de colombiano</p>
+    <div class="type-grid" id="typePick"></div>
     <p class="err" id="profileErr"></p>
     <button class="btn big yellow" id="btnSaveName">💾 Guardar</button>
   </section>
@@ -123,12 +126,11 @@
     <div class="card">
       <h3>Parqués Parce <span id="coffee">☕</span></h3>
       <p>Juego de la materia Aplicaciones Móviles – UPB.</p>
-      <p><b>Equipo:</b> Nombre 1 · Nombre 2 · Nombre 3</p>
+      <p><b>Desarrollo y diseño:</b> Sebastián Muñoz</p>
       <p><b>Tecnología:</b> HTML, CSS y JavaScript empaquetados con Capacitor; sonidos con WebAudio; modo online con Firebase.</p>
-      <p><b>IA:</b> se usó Claude como apoyo para generar la base del código; el equipo lo revisó, lo entiende y lo adaptó.</p>
+      <p><b>IA:</b> se usó Claude como apoyo para generar la base del código; Sebastián lo revisó, lo entiende y lo adaptó.</p>
       <p><b>Música:</b> "Atlas • Colombia" de Vadim_Makes_Sound, vía Pixabay (Licencia de contenido de Pixabay).</p>
       <p><b>Ilustraciones:</b> paisaje, sombrero vueltiao, grano de café y patrón de mochila: vectores originales del proyecto, sin material de terceros.</p>
-      <p><b>Fotos:</b> agrega las imágenes de cada región en <code>assets/img</code> y cita aquí sus autores.</p>
     </div>
     <div class="regions" id="creditRegions"></div>
     <p class="sub small" id="eggHint"></p>
@@ -142,11 +144,11 @@
 
 <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-app-compat.js" onerror="this.remove()"></script>
 <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-database-compat.js" onerror="this.remove()"></script>
-<script src="js/firebase-config.js?v=18"></script>
-<script src="js/store.js?v=18"></script>
-<script src="js/audio.js?v=18"></script>
-<script src="js/engine.js?v=18"></script>
-<script src="js/online.js?v=18"></script>
-<script src="js/app.js?v=18"></script>
+<script src="js/firebase-config.js?v=20"></script>
+<script src="js/store.js?v=20"></script>
+<script src="js/audio.js?v=20"></script>
+<script src="js/engine.js?v=20"></script>
+<script src="js/online.js?v=20"></script>
+<script src="js/app.js?v=20"></script>
 </body>
 </html>

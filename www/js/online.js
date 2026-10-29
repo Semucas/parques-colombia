@@ -22,13 +22,13 @@ const Online = (() => {
 
   const randCode = () => Array.from({ length: 4 }, () => 'ABCDEFGHJKLMNPQRSTUVWXYZ'[Math.floor(Math.random() * 24)]).join('');
 
-  async function create(name) {
+  async function create(name, emoji) {
     init();
     for (let tries = 0; tries < 5; tries++) {
       const c = randCode();
       const ref = db.ref('rooms/' + c);
       if ((await ref.once('value')).exists()) continue;
-      await ref.set({ host: uid, created: Date.now(), started: false, seats: { s0: { uid, name } } });
+      await ref.set({ host: uid, created: Date.now(), started: false, seats: { s0: { uid, name, emoji } } });
       ref.child('seats/s0').onDisconnect().remove();
       code = c; roomRef = ref;
       return c;
@@ -36,7 +36,7 @@ const Online = (() => {
     throw new Error('No se pudo crear la sala, intenta de nuevo.');
   }
 
-  async function join(c, name) {
+  async function join(c, name, emoji) {
     init();
     c = c.trim().toUpperCase();
     const ref = db.ref('rooms/' + c);
@@ -46,7 +46,7 @@ const Online = (() => {
     const res = await ref.child('seats').transaction(cur => {
       cur = cur || {};
       if (Object.values(cur).some(s => s.uid === uid)) return cur;
-      for (let i = 0; i < 4; i++) if (!cur['s' + i]) { cur['s' + i] = { uid, name }; return cur; }
+      for (let i = 0; i < 4; i++) if (!cur['s' + i]) { cur['s' + i] = { uid, name, emoji }; return cur; }
       return undefined;
     });
     if (!res.committed) throw new Error('La sala está llena.');

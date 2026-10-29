@@ -10,6 +10,20 @@
     { name: 'Andina',    color: 'var(--p2)', light: false, emoji: '☕', phrase: '¡Quiubo, parce!',          img: 'assets/img/andina.jpg' },
     { name: 'Amazonía',  color: 'var(--p3)', light: false, emoji: '🦜', phrase: '¡Qué chimba de selva!',    img: 'assets/img/amazonia.jpg' }
   ];
+  // Tipos de colombianos que se pueden escoger en el perfil: su emoji es tu personaje en el tablero
+  const TIPOS = [
+    { id: 'costeno', emoji: '🥥', name: 'Costeño', from: 'Caribe', phrase: '¡Ajá, mi vale!' },
+    { id: 'paisa', emoji: '☕', name: 'Paisa', from: 'Antioquia y Eje Cafetero', phrase: '¡Quiubo, pues, parce!' },
+    { id: 'rolo', emoji: '🏙️', name: 'Rolo', from: 'Bogotá', phrase: '¡Qué más, veci!' },
+    { id: 'caleno', emoji: '💃', name: 'Caleño', from: 'Valle del Cauca', phrase: '¡Oiga, mano!' },
+    { id: 'llanero', emoji: '🐎', name: 'Llanero', from: 'Llanos Orientales', phrase: '¡Pa\' lante, compadre!' },
+    { id: 'santandereano', emoji: '🌶️', name: 'Santandereano', from: 'Santander', phrase: '¡Eche, home!' },
+    { id: 'boyacense', emoji: '🥔', name: 'Boyacense', from: 'Boyacá', phrase: '¡A la orden, sumercé!' },
+    { id: 'pastuso', emoji: '🐹', name: 'Pastuso', from: 'Nariño', phrase: '¡Ala, pues!' },
+    { id: 'chocoano', emoji: '🐋', name: 'Chocoano', from: 'Pacífico', phrase: '¡Ole, mi hermano!' },
+    { id: 'amazonico', emoji: '🦜', name: 'Amazónico', from: 'Amazonía', phrase: '¡Qué chimba de selva!' }
+  ];
+  const myType = () => TIPOS.find(t => t.id === Store.d.type) || TIPOS[1];
   const LEVELS = [
     { name: 'Parcero novato', desc: 'Bots que juegan al azar · 25 s por turno', secs: 25 },
     { name: 'Rebusque',       desc: 'Bots pillos que cazan fichas · 18 s por turno', secs: 18 },
@@ -101,7 +115,7 @@
   /* ---------- home / créditos / niveles ---------- */
   function renderHome() {
     const n = Store.d.name.trim();
-    $('#hello').textContent = n ? `¡Quiubo, ${n}!` : '';
+    $('#hello').textContent = n ? `${myType().emoji} ¡Quiubo, ${n}!` : '';
     syncAudioButtons();
   }
   function renderProfile() {
@@ -110,7 +124,17 @@
     $('#profileErr').textContent = '';
     syncAudioButtons();
     $('#btnProfileBack').style.visibility = hasName ? 'visible' : 'hidden';   // la primera vez no se puede saltar
-    $('#profileMsg').textContent = hasName ? 'Aquí puedes cambiar tu nombre' : '¡Bienvenido! ¿Cómo te llamas, parcero?';
+    $('#profileMsg').textContent = hasName ? 'Aquí puedes cambiar tu nombre y tu tipo de colombiano' : '¡Bienvenido! ¿Cómo te llamas, parcero?';
+    renderTypePick();
+  }
+  // Cuadrícula para escoger de qué región/tipo de colombiano eres; se guarda al tocar
+  function renderTypePick() {
+    const t = myType();
+    $('#profileAv').textContent = t.emoji;
+    $('#typePhrase').textContent = `${t.name} · ${t.from} — ${t.phrase}`;
+    $('#typePick').innerHTML = TIPOS.map(x =>
+      `<button class="tt ${x.id === t.id ? 'sel' : ''}" data-t="${x.id}"><span>${x.emoji}</span>${x.name}</button>`).join('');
+    $$('.tt').forEach(b => b.onclick = () => { Store.d.type = b.dataset.t; Store.save(); Sfx.play('click'); renderTypePick(); });
   }
   function saveName() {
     const n = $('#inpName').value.trim();
@@ -132,9 +156,8 @@
     $$('.rp').forEach(b => b.onclick = () => { Store.d.region = +b.dataset.r; Store.save(); Sfx.play('click'); renderLevels(); });
     renderTokPick('#tokPick');
     $('#levelList').innerHTML = LEVELS.map((l, i) => {
-      const lock = i + 1 > Store.d.unlocked;
-      return `<button class="level" data-l="${i + 1}" ${lock ? 'disabled' : ''}><span class="n">${lock ? '🔒' : i + 1}</span>
-        <span><b>${l.name}</b><small>${lock ? 'Gana el nivel anterior para desbloquear' : l.desc}</small></span></button>`;
+      return `<button class="level" data-l="${i + 1}"><span class="n">${i + 1}</span>
+        <span><b>${l.name}</b><small>${l.desc}</small></span></button>`;
     }).join('');
     $$('.level').forEach(b => b.onclick = () => { Sfx.play('click'); startOffline(+b.dataset.l); });
   }
@@ -173,7 +196,7 @@
     JAILS.forEach(([x, y], p) => {
       const r = REGIONS[p], top = y === 0, jr = JAIL_RECT[p];
       const jail = mk('jail' + (r.light ? ' light' : ''),
-        `${regionImg(r)}<div class="ptag ${top ? 'top' : 'bot'}"><span class="pe">${r.emoji}</span><b class="pn"></b></div>`, r.color);
+        `${regionImg(r)}<div class="ptag ${top ? 'top' : 'bot'}"><span class="pe">${(G.s.players[p] && G.s.players[p].emoji) || r.emoji}</span><b class="pn"></b></div>`, r.color);
       place(jail, jr.x, jr.y, JS, JS);
       slotsOf().forEach(([dx, dy]) => place(mk('slot'), JAIL_C[p][0] + dx - .75, JAIL_C[p][1] + dy - .75 / ASPECT, 1.5, 1.5 / ASPECT));   // huecos de las 4 fichas
       G.jailEls[p] = jail;
@@ -439,7 +462,7 @@
   function startOffline(level) {
     G.mode = 'offline'; G.level = level; G.mySeat = Store.d.region; G.isHost = true;
     const name = Store.d.name.trim() || 'Parcero';
-    const players = REGIONS.map((r, i) => i === G.mySeat ? { type: 'human', name } : { type: 'bot', name: 'Bot ' + r.name, level });
+    const players = REGIONS.map((r, i) => i === G.mySeat ? { type: 'human', name, emoji: myType().emoji } : { type: 'bot', name: 'Bot ' + r.name, level });
     begin(Engine.newState(players, Store.d.tokens));
   }
 
@@ -541,7 +564,7 @@
     $('#roomCode').textContent = Online.code;
     $('#seatList').innerHTML = REGIONS.map((r, i) => {
       const s = v.seats && v.seats['s' + i];
-      return s ? `<li class="${r.light ? 'light' : ''}" style="--c:${r.color}">${r.emoji} ${esc(s.name)} ${s.uid === Online.uid ? '(tú)' : ''}</li>`
+      return s ? `<li class="${r.light ? 'light' : ''}" style="--c:${r.color}">${esc(s.emoji || r.emoji)} ${esc(s.name)} ${s.uid === Online.uid ? '(tú)' : ''}</li>`
                : `<li class="empty">${r.emoji} Libre (juega un bot)</li>`;
     }).join('');
     const host = v.host === Online.uid;
@@ -563,7 +586,7 @@
   function hostStart() {
     const players = REGIONS.map((r, i) => {
       const s = room.seats && room.seats['s' + i];
-      return s ? { type: 'human', name: s.name, uid: s.uid } : { type: 'bot', name: 'Bot ' + r.name, level: 2 };
+      return s ? { type: 'human', name: s.name, uid: s.uid, emoji: s.emoji } : { type: 'bot', name: 'Bot ' + r.name, level: 2 };
     });
     Online.startGame(Engine.newState(players, Store.d.tokens));
   }
@@ -608,8 +631,8 @@
       [{ text: 'Seguir jugando', cls: 'green' }, { text: 'Salir', cls: 'red', fn: () => { leaveRoom(); go('home'); } }]);
     $('#btnAgain').onclick = () => { Sfx.play('click'); if (G.mode === 'online') openLobby(); else go('levels'); };
 
-    $('#btnCreate').onclick = () => enterRoom(Online.create(Store.d.name.trim() || 'Parcero'));
-    $('#btnJoin').onclick = () => enterRoom(Online.join($('#inpCode').value, Store.d.name.trim() || 'Parcero'));
+    $('#btnCreate').onclick = () => enterRoom(Online.create(Store.d.name.trim() || 'Parcero', myType().emoji));
+    $('#btnJoin').onclick = () => enterRoom(Online.join($('#inpCode').value, Store.d.name.trim() || 'Parcero', myType().emoji));
     $('#btnStart').onclick = hostStart;
     $('#btnLobbyBack').onclick = () => { G.mode = 'online'; Online.leave(room && room.host === Online.uid); room = null; go('home'); };
 

@@ -2,12 +2,13 @@
 const Store = (() => {
   const KEY = 'parques_parce_v2';
   const DEFAULTS = {
-    name: '', region: 0, tokens: 4, sound: true, music: true,
-    unlocked: 1, scores: [], stats: { games: 0, wins: 0, captures: 0 }, eggs: {}
+    name: '', type: 'paisa', region: 0, tokens: 4, sound: true, music: true,
+    unlocked: 3, scores: [], stats: { games: 0, wins: 0, captures: 0 }, eggs: {}
   };
   let d;
   try { d = Object.assign({}, DEFAULTS, JSON.parse(localStorage.getItem(KEY) || '{}')); }
   catch (e) { d = Object.assign({}, DEFAULTS); }
+  d.unlocked = 3;   // los 3 niveles están desbloqueados desde el inicio
 
   const api = {
     d,

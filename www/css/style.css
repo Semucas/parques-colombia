@@ -279,3 +279,12 @@ input { width: 100%; font: inherit; font-size: 18px; padding: 12px 14px; border-
 /* Todas las esquinas con su color vivo (sin oscurecer); el turno se marca con el borde y el brillo */
 .jail { filter: brightness(1.1); }
 .jail.active { filter: brightness(1.1); }
+
+/* Perfil: tipo de colombiano */
+.profile-av { font-size: 76px; line-height: 1; animation: bounce 2.2s ease-in-out infinite; }
+.phrase { margin: 0; text-align: center; font-weight: 800; color: var(--yellow); min-height: 20px; }
+.type-grid { width: 100%; display: grid; grid-template-columns: repeat(2, 1fr); gap: 8px; }
+.tt { display: flex; align-items: center; gap: 8px; padding: 8px 10px; border-radius: 14px; border: 3px solid transparent; font-family: inherit;
+  font-weight: 800; font-size: 14px; color: #fff; background: rgba(255,255,255,.16); text-align: left; cursor: pointer; box-shadow: 0 3px 0 rgba(0,0,0,.25); }
+.tt span { font-size: 24px; }
+.tt.sel { background: var(--yellow); color: #3a2f00; border-color: #fff; }
