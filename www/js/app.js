@@ -206,7 +206,7 @@
     JAILS.forEach(([x, y], p) => {
       const r = REGIONS[p], top = y === 0, jr = JAIL_RECT[p], corner = (top ? 't' : 'b') + (x === 0 ? 'l' : 'r');
       const jail = mk('jail ' + corner + (r.light ? ' light' : ''),
-        `${sceneImg(p)}<div class="ptag ${top ? 'top' : 'bot'}"><span class="pe">${(G.s.players[p] && G.s.players[p].emoji) || r.emoji}</span><b class="pn"></b></div>`, r.color);
+        `${sceneImg(p)}<div class="ptag ${top ? 'ptop' : 'pbot'}"><span class="pe">${(G.s.players[p] && G.s.players[p].emoji) || r.emoji}</span><b class="pn"></b></div>`, r.color);
       place(jail, jr.x, jr.y, JS, JS);
       slotsOf().forEach(([dx, dy]) => place(mk('slot'), JAIL_C[p][0] + dx - SLOT_SIZE / 2, JAIL_C[p][1] + dy - SLOT_SIZE / 2 / ASPECT, SLOT_SIZE, SLOT_SIZE / ASPECT));   // huecos de las 4 fichas
       G.jailEls[p] = jail;
