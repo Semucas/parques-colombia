@@ -596,7 +596,7 @@
     const seated = Object.keys(v.seats || {}).length;
     $('#btnStart').classList.toggle('hidden', !host);
     $('#btnStart').disabled = seated < 2;                    // hacen falta al menos 2 personas
-    $('#startHint').textContent = seated < 2 ? 'Esperando jugadores… (mínimo 2, sin bots)' : `Juegan ${seated}: solo las personas de la sala, sin bots.`;
+    $('#startHint').textContent = seated < 2 ? 'Esperando jugadores…' : '';
     $('#lobbyTok').classList.toggle('hidden', !host);
     if (host) renderTokPick('#tokPickLobby');
     $('#waitHost').classList.toggle('hidden', host);
