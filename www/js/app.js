@@ -39,6 +39,7 @@
   const GOALS = [[9, 8], [10, 9], [9, 10], [8, 9]];             // casilla de meta de cada jugador, alrededor del centro
   const JAILS = [[14, 0], [14, 14], [0, 14], [0, 0]];          // esquina (en unidades) de cada cárcel, 8x8
   const SLOTS = [[-1.2, -1.2], [1.2, -1.2], [-1.2, 1.2], [1.2, 1.2]];  // posiciones de las 4 fichas en la cárcel
+  const JCY = [4.8, 3.2, 3.2, 4.8];   // altura del centro de las fichas: las esquinas de abajo dejan el nombre abajo
   const TINTS = ['rgba(252,209,22,.5)', 'rgba(30,111,224,.38)', 'rgba(224,49,70,.38)', 'rgba(34,177,98,.4)'];
 
   // Posición (x,y) de la casilla absoluta a (0..67), siguiendo el contorno de la cruz en sentido horario
@@ -138,7 +139,7 @@
     const s = Store.d.sound ? '🔊' : '🔇';
     const mark = (q, on, icon) => { const b = $(q); b.textContent = icon; b.classList.add('tog'); b.classList.toggle('on', on); };
     ['#btnSound', '#btnSound2', '#btnSound3'].forEach(q => mark(q, Store.d.sound, s));
-    ['#btnMusic', '#btnMusic2'].forEach(q => mark(q, Store.d.music, Store.d.music ? '🎵' : '🔕'));
+    ['#btnMusic', '#btnMusic2', '#btnMusic3'].forEach(q => mark(q, Store.d.music, Store.d.music ? '🎵' : '🔕'));
   }
   function toggleMusic() {
     Store.d.music = !Store.d.music; Store.save(); syncAudioButtons();
@@ -159,13 +160,17 @@
     const mk = (cls, html = '', c) => { const e = document.createElement('div'); e.className = cls; e.innerHTML = html; if (c) e.style.setProperty('--c', c); return e; };
 
     // Esquinas: cárcel de cada región con su emoji/foto y un plato para las 4 fichas
+    G.jailEls = [];
     JAILS.forEach(([x, y], p) => {
-      const r = REGIONS[p];
-      place(mk('jail' + (r.light ? ' light' : ''), `${regionImg(r)}<span class="je">${r.emoji}</span><b>${r.name}</b>`, r.color), x + .3, y + .3, 7.4, 7.4);
-      place(mk('plate'), x + 1, y + 1.8, 6, 6);
+      const r = REGIONS[p], top = y === 0;
+      const jail = mk('jail' + (r.light ? ' light' : ''),
+        `${regionImg(r)}<div class="ptag ${top ? 'top' : 'bot'}"><span class="pe">${r.emoji}</span><span class="pt"><b class="pn"></b><small class="pg"></small></span></div>`, r.color);
+      place(jail, x + .3, y + .3, 7.4, 7.4);
+      SLOTS.forEach(([dx, dy]) => place(mk('slot'), x + 4 + dx - .95, y + JCY[p] + dy - .95, 1.9, 1.9));   // huecos de las 4 fichas
+      G.jailEls[p] = jail;
     });
     // Centro: círculo de cielo con el sombrero vueltiao
-    place(mk('center'), 8, 8, 6, 6);
+    place(mk('center'), 8, 8, 6, 6);   // cuatro triángulos de color apuntando al centro
     // Circuito: cada brazo se tiñe con el color de su dueño; SALIDA en la casilla de salida, SEGURO en la punta del brazo
     for (let a = 0; a < Engine.TRACK; a++) {
       const xy = trackXY(a), arm = Math.floor(a / 17), vertical = arm === 1 || arm === 3;
@@ -186,14 +191,11 @@
       t.onclick = () => onTokenClick(p, i);
       b.appendChild(t); return t;
     }));
-    $('#chips').innerHTML = REGIONS.map((r, p) =>
-      `<div class="chip ${r.light ? 'light' : ''}" style="--c:${r.color}"><span>${r.emoji}</span><b></b><div class="goals"></div></div>`).join('');
-    G.chipEls = $$('.chip');
     buildDice();
   }
 
   function centerOf(p, r, i) {
-    if (r === -1) { const [x, y] = JAILS[p]; return [x + 4 + SLOTS[i][0], y + 4.8 + SLOTS[i][1]]; }
+    if (r === -1) { const [x, y] = JAILS[p]; return [x + 4 + SLOTS[i][0], y + JCY[p] + SLOTS[i][1]]; }
     const xy = r <= Engine.LAST ? trackXY(Engine.abs(p, r)) : r < Engine.GOAL ? LANES[p][r - 67] : GOALS[p];
     const c = cellRect(xy[0], xy[1]);
     return [c.x + c.w / 2, c.y + c.h / 2];
@@ -226,12 +228,11 @@
     const mine = isMine(s.turn) && s.winner < 0 && !G.anim;
     const moves = mine && s.phase === 'move' ? Engine.legalMoves(s, s.turn, s.dice) : [];
     G.tokenEls.forEach((arr, p) => arr.forEach((el, i) => el.classList.toggle('movable', p === s.turn && moves.includes(i))));
-    s.players.forEach((pl, p) => {
-      const chip = G.chipEls[p];
-      chip.classList.toggle('active', s.turn === p && s.winner < 0);
-      chip.classList.toggle('me', p === G.mySeat);
-      $('b', chip).textContent = pl.name;
-      $('.goals', chip).textContent = `🏁 ${s.tokens[p].filter(r => r === Engine.GOAL).length}/4`;
+    s.players.forEach((pl, p) => {              // nombre, personaje y progreso en la esquina de cada jugador
+      const j = G.jailEls[p];
+      j.classList.toggle('active', s.turn === p && s.winner < 0);
+      $('.pn', j).textContent = (pl.name || '').replace(/^Bot /, '') + (p === G.mySeat ? ' (tú)' : '');
+      $('.pg', j).textContent = `🏁 ${s.tokens[p].filter(r => r === Engine.GOAL).length}/4 en meta`;
     });
     $('#btnRoll').disabled = !(mine && s.phase === 'roll');
     if (s.phase === 'move') setFace(s.dice);
@@ -522,7 +523,7 @@
     $('#inpName').onkeydown = e => { if (e.key === 'Enter') saveName(); };
     $('#btnProfileBack').onclick = () => { Sfx.play('click'); go('home'); };
     ['#btnSound', '#btnSound2', '#btnSound3'].forEach(q => $(q).onclick = toggleSound);
-    ['#btnMusic', '#btnMusic2'].forEach(q => $(q).onclick = toggleMusic);
+    ['#btnMusic', '#btnMusic2', '#btnMusic3'].forEach(q => $(q).onclick = toggleMusic);
 
     $('#btnOffline').onclick = () => { Sfx.play('click'); go('levels'); };
     $('#btnOnline').onclick = () => { Sfx.play('click'); openLobby(); };
