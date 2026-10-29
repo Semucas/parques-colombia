@@ -61,7 +61,7 @@ s = E.newState(players);
 s.tokens[0][0] = 20;
 const target = E.abs(0, 20);
 assert(!E.SAFE.has(target));
-s.tokens[1][0] = ((target - E.STARTS[1]) % 68 + 68) % 68 - 3;
+s.tokens[1][0] = (((E.STARTS[1] - (target + 3)) % 68) + 68) % 68;   // 3 casillas antes del objetivo, en su sentido de avance
 s.turn = 1; E.roll(s, 3, 2); s.dbl = false;
 const ev = E.apply(s, 1, 0, 0);
 assert.strictEqual(ev.captured.length, 1, 'captura');
@@ -90,8 +90,8 @@ assert.strictEqual(s.dbls, 0);
 
 // casilla segura: no hay captura
 s = E.newState(players);
-s.tokens[0][0] = ((E.STARTS[2] - E.STARTS[0]) % 68 + 68) % 68;
-s.turn = 1; s.tokens[1][0] = ((E.STARTS[2] - E.STARTS[1]) % 68 + 68) % 68 - 2;
+s.tokens[0][0] = (((E.STARTS[0] - E.STARTS[2]) % 68) + 68) % 68;
+s.turn = 1; s.tokens[1][0] = (((E.STARTS[1] - (E.STARTS[2] + 2)) % 68) + 68) % 68;
 s.dice = [2, 6]; s.avail = [true, true];
 const ev2 = E.apply(s, 1, 0, 0);
 assert.strictEqual(ev2.captured.length, 0, 'no se captura en casillas seguras');
