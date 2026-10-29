@@ -6,6 +6,3 @@ android/local.properties
 *.jks
 .idea/
 
-# Canción de Pixabay: no se redistribuye en el repositorio
-www/assets/audio/musica.mp3
-www/assets/audio/musica-juego.mp3

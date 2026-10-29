@@ -6,5 +6,5 @@ Música de fondo del juego (en bucle, volumen bajo; se apaga con el botón de m�
 - Para publicar en Google Play usa pistas libres de regalías / Creative Commons con uso comercial
   (Pixabay Music: busca "urban", "hip hop", "reggaeton" o "trap"; Jamendo; Free Music Archive).
 - "Colombia, tierra querida" (Lucho Bermúdez) tiene derechos de autor.
-- Los .mp3 no se suben al repositorio (ver .gitignore) para no redistribuir las pistas.
+- Los .mp3 sí se suben al repositorio. Revisa la licencia de cada pista antes de hacerlo público (Pixabay no permite redistribuir el archivo suelto).
 - Peso recomendado: menos de 3 MB (mp3 128 kbps). Cita título, autor y licencia en el README.
