@@ -18,12 +18,17 @@ const Engine = (() => {
   // Las fichas avanzan en sentido contrario a las manecillas del reloj: el índice absoluto va DISMINUYENDO
   const abs = (p, r) => (((STARTS[p] - r) % TRACK) + TRACK) % TRACK;
 
+  // Puestos sin jugador (partida online con menos de 4 personas): players[i].type === 'none'. No tienen fichas en juego
+  // y el turno los salta.
+  const activePlayers = s => [0, 1, 2, 3].filter(i => s.players[i].type !== 'none');
+  const nextActive = (s, p) => { let q = p; for (let k = 0; k < 4; k++) { q = (q + 1) % 4; if (s.players[q].type !== 'none') return q; } return p; };
+
   // r = -1 cárcel, 0..LAST circuito, LAST+1..LAST+7 pasillo, GOAL meta
   // phase: 'roll' (toca lanzar) | 'move' (hay dados por jugar) | 'bonus' (tres pares: sacar una ficha)
   function newState(players, n = 4) {
     return {
       n, tokens: [0, 1, 2, 3].map(() => Array.from({ length: n }, () => -1)),
-      turn: 0, dice: [0, 0], avail: [false, false], dbl: false, dbls: 0, tries: 3,
+      turn: Math.max(0, players.findIndex(pl => pl.type !== 'none')), dice: [0, 0], avail: [false, false], dbl: false, dbls: 0, tries: 3,
       phase: 'roll', winner: -1, seq: 0,
       players, last: { kind: 'start', captured: [] }
     };
@@ -73,7 +78,7 @@ const Engine = (() => {
 
   function endTurn(s, p) {
     const extra = s.dbl && s.dbls < 3;                      // solo se repite con par (y no el tercero)
-    if (!extra) { s.turn = (p + 1) % 4; s.dbls = 0; }
+    if (!extra) { s.turn = nextActive(s, p); s.dbls = 0; }
     s.tries = boardCount(s, s.turn) === 0 ? 3 : 0;          // sin fichas en juego: 3 intentos para sacar un par
     s.dice = [0, 0]; s.avail = [false, false]; s.dbl = false;
     s.phase = 'roll'; s.seq++;
@@ -133,6 +138,23 @@ const Engine = (() => {
     s.last = ev; s.seq++;
     if (!checkWin(s, p, ev)) endTurn(s, p);
     return ev;
+  }
+
+  // Un jugador sale de la partida (se desconectó): deja de jugar, sus fichas desaparecen y el turno sigue.
+  // Si solo queda una persona, gana.
+  function removePlayer(s, p) {
+    if (s.players[p].type === 'none') return;
+    s.players[p].type = 'none'; s.players[p].left = true;
+    s.tokens[p] = s.tokens[p].map(() => -1);
+    s.last = { kind: 'left', p, captured: [] };
+    const act = activePlayers(s);
+    if (act.length <= 1) {
+      if (act.length === 1) { s.winner = act[0]; s.last.win = true; }
+    } else if (s.turn === p) {
+      s.turn = nextActive(s, p); s.dbls = 0;
+    }
+    s.tries = boardCount(s, s.turn) === 0 ? 3 : 0;
+    s.dice = [0, 0]; s.avail = [false, false]; s.dbl = false; s.phase = 'roll'; s.seq++;
   }
 
   function pass(s, p) {
@@ -196,7 +218,7 @@ const Engine = (() => {
   }
 
   return { TRACK, STARTS, MOUTHS, SIDE_SAFES, LAST, GOAL, SAFE, abs, newState, legalMoves, values, choices, boardCount, jailTokens, exitCount, roll, apply,
-           bonusTokens, takeOut, pass, botChoose, botBonus };
+           bonusTokens, takeOut, pass, removePlayer, activePlayers, botChoose, botBonus };
 })();
 
 if (typeof module !== 'undefined') module.exports = Engine;

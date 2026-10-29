@@ -42,7 +42,7 @@ Sube el `.aab` en Google Play Console (cuenta de desarrollador, ficha de tienda,
 2. En *Configuración del proyecto > Tus apps* agrega una app **Web** (`</>`) y copia el objeto `firebaseConfig`.
 3. Pégalo en `www/js/firebase-config.js` (`apiKey`, `authDomain`, `databaseURL`, `projectId`, `appId`).
 4. En *Compilación > Realtime Database* pulsa **Crear base de datos**, elige la región más cercana y en la pestaña **Reglas** pega el contenido de `database.rules.json` (sirve para el trabajo; para producción conviene restringir el acceso con Firebase Auth) y publica.
-5. Prueba con dos celulares (o dos pestañas): uno entra a *Jugar online > Crear sala* y comparte el código de 4 letras; el otro entra con *Unirme*. El anfitrión pulsa *Empezar partida*; los puestos libres los juegan bots que mueve el anfitrión.
+5. Prueba con dos celulares (o dos pestañas): uno entra a *Jugar online > Crear sala* y comparte el código de 4 letras; el otro entra con *Unirme*. El anfitrión pulsa *Empezar partida*; los puestos libres quedan vacíos (**sin bots**) y hacen falta al menos 2 jugadores.
 
 ### Probar el modo online sin Firebase
 

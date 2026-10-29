@@ -204,12 +204,13 @@
 
     // Esquinas: cárcel de cada región con su emoji/foto y un plato para las 4 fichas
     G.jailEls = [];
+    G.slotEls = [[], [], [], []];
     JAILS.forEach(([x, y], p) => {
       const r = REGIONS[p], top = y === 0, jr = JAIL_RECT[p], corner = (top ? 't' : 'b') + (x === 0 ? 'l' : 'r');
       const jail = mk('jail ' + corner + (r.light ? ' light' : ''),
         `${sceneImg(p)}<div class="ptag ${top ? 'ptop' : 'pbot'}"><span class="pe">${(G.s.players[p] && G.s.players[p].emoji) || r.emoji}</span><b class="pn"></b></div>`, r.color);
       place(jail, jr.x, jr.y, JS, JS);
-      slotsOf().forEach(([dx, dy]) => place(mk('slot'), JAIL_C[p][0] + dx - SLOT_SIZE / 2, JAIL_C[p][1] + dy - SLOT_SIZE / 2 / ASPECT, SLOT_SIZE, SLOT_SIZE / ASPECT));   // huecos de las 4 fichas
+      slotsOf().forEach(([dx, dy]) => { const sl = mk('slot'); place(sl, JAIL_C[p][0] + dx - SLOT_SIZE / 2, JAIL_C[p][1] + dy - SLOT_SIZE / 2 / ASPECT, SLOT_SIZE, SLOT_SIZE / ASPECT); G.slotEls[p].push(sl); });   // huecos de las fichas
       G.jailEls[p] = jail;
     });
     // Centro: círculo de cielo con el sombrero vueltiao
@@ -291,7 +292,11 @@
     s.players.forEach((pl, p) => {              // nombre, personaje y progreso en la esquina de cada jugador
       const j = G.jailEls[p];
       j.classList.toggle('active', s.turn === p && s.winner < 0);
-      const base = (pl.name || '').replace(/^Bot /, '');
+      const none = pl.type === 'none';                       // puesto sin jugador (online sin bots)
+      j.classList.toggle('empty', none);
+      G.tokenEls[p].forEach(el => { el.style.display = none ? 'none' : ''; });
+      G.slotEls[p].forEach(el => { el.style.display = none ? 'none' : ''; });
+      const base = none ? (pl.left ? 'Salió' : 'Libre') : (pl.name || '').replace(/^Bot /, '');
       const nm = base + (p === G.mySeat ? (base.length <= 8 ? ' (tú)' : ' ★') : '');   // marca de "eres tú", corta si el nombre es largo
       const pn = $('.pn', j); pn.textContent = nm;
       pn.style.fontSize = nm.length > 12 ? '7.5px' : nm.length > 9 ? '9px' : '';   // nombres largos: letra más chica para que quepan
@@ -382,8 +387,8 @@
     if (s.winner >= 0) return finishGame();
     const p = s.turn, pl = s.players[p];
     if (!isActor(p)) {
-      if (G.mode === 'online' && G.isHost) later(() => {   // jugador remoto desconectado: lo reemplaza un bot
-        pl.type = 'bot'; pl.level = 2; pl.name += ' (bot)'; s.seq++; commit();
+      if (G.mode === 'online' && G.isHost) later(() => {   // jugador remoto desconectado: sale de la partida (sin bots)
+        Engine.removePlayer(s, p); commit();
       }, 45000);
       return;
     }
@@ -585,10 +590,13 @@
     $('#seatList').innerHTML = REGIONS.map((r, i) => {
       const s = v.seats && v.seats['s' + i];
       return s ? `<li class="${r.light ? 'light' : ''}" style="--c:${r.color}">${esc(s.emoji || r.emoji)} ${esc(s.name)} ${s.uid === Online.uid ? '(tú)' : ''}</li>`
-               : `<li class="empty">${r.emoji} Libre (juega un bot)</li>`;
+               : `<li class="empty">${r.emoji} Libre</li>`;
     }).join('');
     const host = v.host === Online.uid;
+    const seated = Object.keys(v.seats || {}).length;
     $('#btnStart').classList.toggle('hidden', !host);
+    $('#btnStart').disabled = seated < 2;                    // hacen falta al menos 2 personas
+    $('#startHint').textContent = seated < 2 ? 'Esperando jugadores… (mínimo 2, sin bots)' : `Juegan ${seated}: solo las personas de la sala, sin bots.`;
     $('#lobbyTok').classList.toggle('hidden', !host);
     if (host) renderTokPick('#tokPickLobby');
     $('#waitHost').classList.toggle('hidden', host);
@@ -604,13 +612,10 @@
     return st;
   }
   function hostStart() {
-    const used = Object.values(room.seats || {}).map(x => x.emoji);
-    const bt = botTypes(4, used);
-    let bi = 0;
+    if (Object.keys(room.seats || {}).length < 2) return;     // mínimo 2 jugadores
     const players = REGIONS.map((r, i) => {
       const s = room.seats && room.seats['s' + i];
-      if (s) return { type: 'human', name: s.name, uid: s.uid, emoji: s.emoji };
-      const b = bt[bi++]; return { type: 'bot', name: 'Bot ' + b.name, emoji: b.emoji, level: 2 };
+      return s ? { type: 'human', name: s.name, uid: s.uid, emoji: s.emoji } : { type: 'none', name: 'Libre', emoji: '💤' };
     });
     Online.startGame(Engine.newState(players, Store.d.tokens));
   }

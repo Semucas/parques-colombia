@@ -33,6 +33,35 @@ for (const n of [1, 2, 3, 4]) {
   }
 }
 
+// 1b) Partidas con puestos libres (online sin bots): el turno salta a los que no juegan y la partida termina
+for (const active of [[0, 2], [1, 2, 3], [0, 1, 3], [3, 0]]) {
+  for (const n of [1, 4]) {
+    for (let g = 0; g < 30; g++) {
+      const ps = players.map((pl, i) => (active.includes(i) ? pl : { type: 'none', name: 'Libre' }));
+      const s = E.newState(ps, n);
+      assert(active.includes(s.turn), 'empieza un jugador activo');
+      let steps = 0;
+      while (s.winner < 0) {
+        if (++steps > 60000) throw new Error('La partida con puestos libres no termina');
+        botTurnStep(s, 2);
+        assert(active.includes(s.turn), 'el turno nunca cae en un puesto libre');
+        assert(active.includes(s.winner) || s.winner < 0, 'solo gana quien juega');
+      }
+    }
+  }
+}
+// un jugador que sale: el turno sigue; si solo queda uno, gana
+{
+  const s = E.newState(players.map(pl => ({ ...pl })), 2);   // copias: removePlayer modifica a los jugadores
+  s.turn = 1;
+  E.removePlayer(s, 1);
+  assert.strictEqual(s.players[1].type, 'none');
+  assert.strictEqual(s.turn, 2, 'si salía el del turno, sigue el siguiente');
+  assert.strictEqual(s.winner, -1);
+  E.removePlayer(s, 3); E.removePlayer(s, 0);
+  assert.strictEqual(s.winner, 2, 'el único que queda gana');
+}
+
 // 2) Salir de la cárcel: solo con par
 let s = E.newState(players);
 E.roll(s, 5, 4);
