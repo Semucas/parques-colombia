@@ -38,7 +38,9 @@
   ];
   const GOALS = [[9, 8], [10, 9], [9, 10], [8, 9]];             // casilla de meta de cada jugador, alrededor del centro
   const JAILS = [[14, 0], [14, 14], [0, 14], [0, 0]];          // esquina (en unidades) de cada cárcel, 8x8
-  const SLOTS = [[-1, -1], [1, -1], [-1, 1], [1, 1]];          // posiciones de las 4 fichas en la cárcel
+  // posiciones de las fichas dentro de la cárcel según cuántas fichas se juegan (1 a 4)
+  const SLOT_LAYOUT = { 1: [[0, 0]], 2: [[-1, 0], [1, 0]], 3: [[-1, -1], [1, -1], [0, 1]], 4: [[-1, -1], [1, -1], [-1, 1], [1, 1]] };
+  const slotsOf = () => SLOT_LAYOUT[(G.s && G.s.n) || 4];
   // La cárcel es un cuadrado de 6.2 unidades pegado a la esquina exterior; el nombre va arriba (esquinas de arriba) o abajo
   const JS = 6.2;
   const JAIL_RECT = JAILS.map(([x, y]) => ({ x: x + (x > 0 ? 8 - JS - .25 : .25), y: y + (y > 0 ? 8 - JS - .25 : .25) }));
@@ -131,12 +133,19 @@
     $('#regionPick').innerHTML = REGIONS.map((r, i) =>
       `<button class="rp ${i === Store.d.region ? 'sel' : ''}" style="--c:${r.color}" data-r="${i}" title="${r.name}">${r.emoji}</button>`).join('');
     $$('.rp').forEach(b => b.onclick = () => { Store.d.region = +b.dataset.r; Store.save(); Sfx.play('click'); renderLevels(); });
+    renderTokPick('#tokPick');
     $('#levelList').innerHTML = LEVELS.map((l, i) => {
       const lock = i + 1 > Store.d.unlocked;
       return `<button class="level" data-l="${i + 1}" ${lock ? 'disabled' : ''}><span class="n">${lock ? '🔒' : i + 1}</span>
         <span><b>${l.name}</b><small>${lock ? 'Gana el nivel anterior para desbloquear' : l.desc}</small></span></button>`;
     }).join('');
     $$('.level').forEach(b => b.onclick = () => { Sfx.play('click'); startOffline(+b.dataset.l); });
+  }
+  // Selector de cuántas fichas se juegan (1 a 4); se guarda y se usa en las partidas nuevas
+  function renderTokPick(q) {
+    const box = $(q);
+    box.innerHTML = [1, 2, 3, 4].map(n => `<button class="tp ${n === Store.d.tokens ? 'sel' : ''}" data-n="${n}">${n}</button>`).join('');
+    $$('.tp', box).forEach(b => b.onclick = () => { Store.d.tokens = +b.dataset.n; Store.save(); Sfx.play('click'); renderTokPick(q); });
   }
   function syncAudioButtons() {
     const s = Store.d.sound ? '🔊' : '🔇';
@@ -169,7 +178,7 @@
       const jail = mk('jail' + (r.light ? ' light' : ''),
         `${regionImg(r)}<div class="ptag ${top ? 'top' : 'bot'}"><span class="pe">${r.emoji}</span><b class="pn"></b></div>`, r.color);
       place(jail, jr.x, jr.y, JS, JS);
-      SLOTS.forEach(([dx, dy]) => place(mk('slot'), JAIL_C[p][0] + dx - .75, JAIL_C[p][1] + dy - .75, 1.5, 1.5));   // huecos de las 4 fichas
+      slotsOf().forEach(([dx, dy]) => place(mk('slot'), JAIL_C[p][0] + dx - .75, JAIL_C[p][1] + dy - .75, 1.5, 1.5));   // huecos de las 4 fichas
       G.jailEls[p] = jail;
     });
     // Centro: círculo de cielo con el sombrero vueltiao
@@ -190,7 +199,7 @@
     GOALS.forEach((xy, p) => placeCell(mk('cell goal', lbl('LLEGADA', p, p === 1 || p === 3), REGIONS[p].color), xy));
     place(mk('hat', '<img src="assets/img/sombrero.svg" alt="">'), 9.2, 9.75, 3.6, 2.5);
 
-    G.tokenEls = [0, 1, 2, 3].map(p => [0, 1, 2, 3].map(i => {
+    G.tokenEls = [0, 1, 2, 3].map(p => Array.from({ length: G.s.n || 4 }, (_, i) => {
       const t = mk('token'); t.style.setProperty('--c', REGIONS[p].color);
       t.onclick = () => onTokenClick(p, i);
       b.appendChild(t); return t;
@@ -199,22 +208,39 @@
   }
 
   function centerOf(p, r, i) {
-    if (r === -1) return [JAIL_C[p][0] + SLOTS[i][0], JAIL_C[p][1] + SLOTS[i][1]];
+    if (r === -1) return [JAIL_C[p][0] + slotsOf()[i][0], JAIL_C[p][1] + slotsOf()[i][1]];
     const xy = r <= Engine.LAST ? trackXY(Engine.abs(p, r)) : r < Engine.GOAL ? LANES[p][r - Engine.LAST - 1] : GOALS[p];
     const c = cellRect(xy[0], xy[1]);
     return [c.x + c.w / 2, c.y + c.h / 2];
   }
 
   function buildDice() {
-    const d = $('#dice'); d.innerHTML = '<i></i>'.repeat(9);
-    setFace(1);
+    ['#dice1', '#dice2'].forEach(q => { $(q).innerHTML = '<i></i>'.repeat(9); });
+    setFace('#dice1', 1); setFace('#dice2', 1);
   }
   const PIPS = { 1: [4], 2: [0, 8], 3: [0, 4, 8], 4: [0, 2, 6, 8], 5: [0, 2, 4, 6, 8], 6: [0, 2, 3, 5, 6, 8] };
-  function setFace(n) { $$('#dice i').forEach((el, k) => el.style.opacity = PIPS[n].includes(k) ? 1 : 0); }
-  function animateDice(final) {
-    const d = $('#dice'); d.classList.remove('rolling'); void d.offsetWidth; d.classList.add('rolling');
+  function setFace(q, n) { $$(q + ' i').forEach((el, k) => el.style.opacity = PIPS[n].includes(k) ? 1 : 0); }
+  function animateDice(a, b) {
+    G.rolling = true;
+    ['#dice1', '#dice2'].forEach(q => { const d = $(q); d.classList.remove('rolling'); void d.offsetWidth; d.classList.add('rolling'); });
     let k = 0;
-    const iv = setInterval(() => { setFace(1 + Math.floor(Math.random() * 6)); if (++k > 5) { clearInterval(iv); setFace(final); } }, 80);
+    const iv = setInterval(() => {
+      setFace('#dice1', 1 + Math.floor(Math.random() * 6)); setFace('#dice2', 1 + Math.floor(Math.random() * 6));
+      if (++k > 5) { clearInterval(iv); G.rolling = false; setFace('#dice1', a); setFace('#dice2', b); }
+    }, 80);
+  }
+  // Chips para elegir con qué dado (o con la suma) se mueve, cuando hay más de una opción
+  function renderPick(ch) {
+    const box = $('#pick'); box.innerHTML = '';
+    box.classList.toggle('hidden', ch.length < 2);
+    if (ch.length < 2) return;
+    ch.forEach(c => {
+      const b = document.createElement('button');
+      b.className = 'pk' + (c.use === G.sel ? ' sel' : '');
+      b.textContent = c.use === 2 ? `Σ ${c.v}` : `🎲 ${c.v}`;
+      b.onclick = () => { G.sel = c.use; Sfx.play('click'); render(); };
+      box.appendChild(b);
+    });
   }
 
   function render() {
@@ -229,8 +255,15 @@
       if (G.anim && ((G.anim.p === p && G.anim.i === i) || G.anim.hold.has(p + ':' + i))) return;  // se mueven con la animación
       setTokenPos(G.tokenEls[p][i], cx + ox, cy + oy);
     }));
-    const mine = isMine(s.turn) && s.winner < 0 && !G.anim;
-    const moves = mine && s.phase === 'move' ? Engine.legalMoves(s, s.turn, s.dice) : [];
+    const mine = isMine(s.turn) && s.winner < 0 && !G.anim && !G.paused;
+    let ch = [], moves = [];
+    if (mine && s.phase === 'move') {
+      ch = Engine.choices(s, s.turn);
+      if (!ch.some(c => c.use === G.sel)) G.sel = ch.length ? ch[0].use : 0;
+      const cur = ch.find(c => c.use === G.sel);
+      moves = cur ? cur.moves : [];
+    } else if (mine && s.phase === 'bonus') moves = Engine.bonusTokens(s, s.turn);
+    renderPick(ch);
     G.tokenEls.forEach((arr, p) => arr.forEach((el, i) => el.classList.toggle('movable', p === s.turn && moves.includes(i))));
     s.players.forEach((pl, p) => {              // nombre, personaje y progreso en la esquina de cada jugador
       const j = G.jailEls[p];
@@ -238,14 +271,18 @@
       $('.pn', j).textContent = (pl.name || '').replace(/^Bot /, '') + (p === G.mySeat ? ' (tú)' : '');
     });
     $('#btnRoll').disabled = !(mine && s.phase === 'roll');
-    if (s.phase === 'move') setFace(s.dice);
-    $('#msg').textContent = statusText(mine, moves);
+    if (!G.rolling && s.dice[0]) { setFace('#dice1', s.dice[0]); setFace('#dice2', s.dice[1]); }
+    $('#dice1').classList.toggle('used', s.phase === 'move' && !s.avail[0]);
+    $('#dice2').classList.toggle('used', s.phase === 'move' && !s.avail[1]);
+    $('#msg').textContent = statusText(mine, moves, ch);
   }
-  function statusText(mine, moves) {
+  function statusText(mine, moves, ch) {
     const s = G.s;
     if (s.winner >= 0) return `🏆 Ganó ${s.players[s.winner].name}`;
-    if (mine && s.phase === 'roll') return '¡Tu turno! Lanza el dado 🎲';
-    if (mine && s.phase === 'move') return moves.length ? 'Toca la ficha que quieres mover' : (s.dice === 5 ? '' : 'No tienes jugadas…');
+    if (G.paused) return '⏸️ Juego en pausa';
+    if (mine && s.phase === 'roll') return '¡Tu turno! Lanza los dados 🎲🎲';
+    if (mine && s.phase === 'bonus') return '🎉 ¡Tres pares! Toca una ficha para sacarla del juego';
+    if (mine && s.phase === 'move') return ch.length > 1 ? 'Elige un dado (o la suma) y toca una ficha' : (moves.length ? 'Toca la ficha que quieres mover' : 'No tienes jugadas…');
     return `Turno de ${s.players[s.turn].name}…`;
   }
 
@@ -258,7 +295,7 @@
   function later(fn, ms) {
     const seq = G.s.seq;
     const wait = ms + Math.max(0, (G.busyUntil || 0) - Date.now());
-    G.timers.push(setTimeout(() => { if (G.active && G.s && G.s.seq === seq) fn(); }, wait));
+    G.timers.push(setTimeout(() => { if (G.active && !G.paused && G.s && G.s.seq === seq) fn(); }, wait));
   }
   function startTurnTimer(fn) {
     const secs = G.mode === 'online' ? 25 : LEVELS[G.level - 1].secs;
@@ -277,7 +314,7 @@
   function setTokenPos(el, cx, cy) { el.style.left = ((cx - .43) / N * 100) + '%'; el.style.top = ((cy - .43) / N * 100) + '%'; }
   function startMoveAnim(ev) {
     const to = G.s.tokens[ev.p][ev.i];
-    const path = ev.exit ? [0] : Array.from({ length: ev.d }, (_, k) => to - ev.d + 1 + k);
+    const path = ev.exit ? [0] : ev.bonus ? [Engine.GOAL] : Array.from({ length: ev.d }, (_, k) => to - ev.d + 1 + k);
     const anim = G.anim = { p: ev.p, i: ev.i, hold: new Set(ev.captured.map(c => c.p + ':' + c.i)) };
     G.busyUntil = Date.now() + path.length * PACE.step + 500;
     G.animTimers.forEach(clearTimeout); G.animTimers = [];
@@ -303,6 +340,7 @@
   function schedule() {
     clearTimers();
     const s = G.s;
+    if (G.paused) return;
     if (s.winner >= 0) return finishGame();
     const p = s.turn, pl = s.players[p];
     if (!isActor(p)) {
@@ -312,17 +350,16 @@
       return;
     }
     const human = pl.type === 'human';
-    const moves = s.phase === 'move' ? Engine.legalMoves(s, p, s.dice) : [];
     if (s.phase === 'roll') {
       if (human) startTurnTimer(doRoll); else later(doRoll, PACE.botRoll);
-    } else if (!moves.length) {
-      later(doPass, PACE.pass);
-    } else if (moves.length === 1) {
-      later(() => doMove(moves[0]), human ? PACE.single : PACE.botMove);
-    } else if (human) {
-      startTurnTimer(() => doMove(Engine.botChoose(s, p, s.dice, moves, 3)));
+    } else if (s.phase === 'bonus') {                       // tres pares: se saca una ficha del juego
+      if (human) startTurnTimer(() => doBonus(Engine.botBonus(s, p))); else later(() => doBonus(Engine.botBonus(s, p)), PACE.botMove);
     } else {
-      later(() => doMove(Engine.botChoose(s, p, s.dice, moves, pl.level || G.level)), PACE.botMove);
+      const ch = Engine.choices(s, p);
+      if (!ch.length) later(doPass, PACE.pass);
+      else if (ch.length === 1 && ch[0].moves.length === 1) later(() => doMove(ch[0].moves[0], ch[0].use), human ? PACE.single : PACE.botMove);
+      else if (human) startTurnTimer(() => { const c = Engine.botChoose(s, p, 3); doMove(c.i, c.use); });
+      else later(() => { const c = Engine.botChoose(s, p, pl.level || G.level); doMove(c.i, c.use); }, PACE.botMove);
     }
   }
 
@@ -338,35 +375,38 @@
     schedule();
   }
 
+  const d6 = () => 1 + Math.floor(Math.random() * 6);
   function doRoll() {
     const s = G.s; if (s.phase !== 'roll' || !isActor(s.turn)) return;
-    Engine.roll(s, 1 + Math.floor(Math.random() * 6));
+    Engine.roll(s, d6(), d6());
     commit();
   }
-  function doMove(i) {
+  function doMove(i, use = G.sel) {
     const s = G.s, p = s.turn;
-    const ev = Engine.apply(s, p, i, s.dice);
+    const ev = Engine.apply(s, p, i, use);
     if (p === G.mySeat) G.stats.captures += ev.captured.length;
     commit();
   }
-  function doPass() { Engine.pass(G.s, G.s.turn, G.s.dice); commit(); }
+  function doBonus(i) { Engine.takeOut(G.s, G.s.turn, i); commit(); }
+  function doPass() { Engine.pass(G.s, G.s.turn); commit(); }
 
   function onTokenClick(p, i) {
     const s = G.s;
-    if (!s || s.winner >= 0 || s.phase !== 'move' || s.turn !== p || !isMine(p)) return;
-    if (!Engine.legalMoves(s, p, s.dice).includes(i)) return;
-    clearTimers(); doMove(i);
+    if (!s || s.winner >= 0 || s.turn !== p || !isMine(p) || G.anim || G.paused) return;
+    if (s.phase === 'bonus') { if (Engine.bonusTokens(s, p).includes(i)) { clearTimers(); doBonus(i); } return; }
+    if (s.phase !== 'move') return;
+    const c = Engine.choices(s, p).find(c => c.use === G.sel);
+    if (!c || !c.moves.includes(i)) return;
+    clearTimers(); doMove(i, c.use);
   }
 
   function playFx(ev) {
     if (!ev) return;
     if (ev.kind === 'roll') {
-      Sfx.play('roll'); animateDice(ev.d);
-      if (ev.d === 6) { Sfx.play('six'); toast(rnd(PHRASES.six), 1200); }
-      if (ev.p === G.mySeat) {
-        G.sixStreak = ev.d === 6 ? G.sixStreak + 1 : 0;
-        if (G.sixStreak === 3) eggSixes();
-      }
+      Sfx.play('roll'); animateDice(ev.d[0], ev.d[1]);
+      if (ev.triple) { Sfx.play('goal'); toast('🎉 ¡Tres pares seguidos! Sacas una ficha del juego', 2800); confetti(40); }
+      else if (ev.dbl) { Sfx.play('six'); toast('¡Par! ' + rnd(PHRASES.six) + ' Repites turno', 1800); }
+      if (ev.d[0] === 6 && ev.d[1] === 6 && ev.p === G.mySeat) eggSixes();
     } else if (ev.kind === 'move') {
       if (ev.captured.length) {
         Sfx.play('capture'); toast(rnd(PHRASES.capture));
@@ -383,8 +423,10 @@
   /* ---------- inicio y fin de partida ---------- */
   function begin(state) {
     G.animTimers.forEach(clearTimeout); G.animTimers = []; G.anim = null; G.busyUntil = 0;
+    G.paused = false; G.rolling = false; G.sel = 0;
     G.s = state; G.active = true; G.stats = { captures: 0 }; G.fxSeq = state.seq; G.sixStreak = 0; G.lastResult = null;
     buildBoard();
+    $('#btnPause').classList.toggle('hidden', G.mode !== 'offline');   // la pausa solo existe jugando offline
     $('#gameTitle').textContent = G.mode === 'offline' ? `Nivel ${G.level} · ${LEVELS[G.level - 1].name}` : `Sala ${Online.code}`;
     go('game');
     Sfx.play('exit');
@@ -396,14 +438,15 @@
     G.mode = 'offline'; G.level = level; G.mySeat = Store.d.region; G.isHost = true;
     const name = Store.d.name.trim() || 'Parcero';
     const players = REGIONS.map((r, i) => i === G.mySeat ? { type: 'human', name } : { type: 'bot', name: 'Bot ' + r.name, level });
-    begin(Engine.newState(players));
+    begin(Engine.newState(players, Store.d.tokens));
   }
 
   function finishGame() {
     G.active = false; clearTimers();
     const s = G.s, won = s.winner === G.mySeat;
     const goals = s.tokens[G.mySeat].filter(r => r === Engine.GOAL).length;
-    const pts = goals * 100 + G.stats.captures * 50 + (won ? 300 * (G.mode === 'offline' ? G.level : 2) : 0);
+    const n = s.n || 4;                                     // ganar con menos fichas vale menos
+    const pts = goals * 100 + G.stats.captures * 50 + (won ? Math.round(300 * (G.mode === 'offline' ? G.level : 2) * n / 4) : 0);
     const entry = { name: Store.d.name.trim() || 'Anónimo', pts, won, captures: G.stats.captures,
                     mode: G.mode, level: G.mode === 'offline' ? G.level : 0, date: Date.now() };
     Store.addScore(entry);
@@ -413,8 +456,23 @@
     if (won) confetti(90);
     setTimeout(() => modal(
       `<div class="em">${won ? '🏆' : '😅'}</div><h3>${won ? '¡Ganaste, parce!' : 'Ganó ' + s.players[s.winner].name}</h3>
-       <p><b>${pts}</b> puntos · ${G.stats.captures} capturas · ${goals}/4 fichas en meta</p>${extra}`,
+       <p><b>${pts}</b> puntos · ${G.stats.captures} capturas · ${goals}/${n} fichas en meta</p>${extra}`,
       [{ text: '🏆 Ver puntajes', cls: 'yellow', fn: () => { leaveRoom(); go('scores'); } }]), 1600 + Math.max(0, G.busyUntil - Date.now()));
+  }
+
+  /* ---------- pausa (solo offline) ---------- */
+  function pauseGame() {
+    if (!G.active || G.mode !== 'offline' || G.paused || G.s.winner >= 0) return;
+    G.paused = true; clearTimers();
+    render();
+    modal('<div class="em">⏸️</div><h3>Juego en pausa</h3><p>Tu partida sigue guardada. Cuando quieras, continúa.</p>',
+      [{ text: '▶️ Continuar', cls: 'yellow', fn: resumeGame },
+       { text: '🚪 Salir de la partida', cls: 'red', fn: () => { G.paused = false; leaveRoom(); go('home'); } }]);
+  }
+  function resumeGame() {
+    if (!G.paused) return;
+    G.paused = false;
+    render(); schedule();
   }
 
   function leaveRoom() {
@@ -486,13 +544,18 @@
     }).join('');
     const host = v.host === Online.uid;
     $('#btnStart').classList.toggle('hidden', !host);
+    $('#lobbyTok').classList.toggle('hidden', !host);
+    if (host) renderTokPick('#tokPickLobby');
     $('#waitHost').classList.toggle('hidden', host);
   }
   function normalize(st) {
-    st.tokens = st.tokens.map(a => Array.from({ length: 4 }, (_, i) => a[i]));
+    st.n = st.n || 4;
+    st.tokens = st.tokens.map(a => Array.from({ length: st.n }, (_, i) => a[i]));
     st.players = Array.from({ length: 4 }, (_, i) => st.players[i]);
     st.last = st.last || {}; st.last.captured = st.last.captured || [];
-    st.dice = st.dice || 0; st.winner = st.winner == null ? -1 : st.winner;
+    st.dice = [(st.dice && st.dice[0]) || 0, (st.dice && st.dice[1]) || 0];
+    st.avail = [!!(st.avail && st.avail[0]), !!(st.avail && st.avail[1])]; st.dbl = !!st.dbl; st.dbls = st.dbls || 0;
+    st.winner = st.winner == null ? -1 : st.winner;
     return st;
   }
   function hostStart() {
@@ -500,11 +563,11 @@
       const s = room.seats && room.seats['s' + i];
       return s ? { type: 'human', name: s.name, uid: s.uid } : { type: 'bot', name: 'Bot ' + r.name, level: 2 };
     });
-    Online.startGame(Engine.newState(players));
+    Online.startGame(Engine.newState(players, Store.d.tokens));
   }
 
   /* ---------- easter eggs ---------- */
-  function eggSixes() { toast('🎲🎲🎲 ¡Tres seises! Hoy te quiere la Virgen', 2600); confetti(40); }
+  function eggSixes() { toast('🎲🎲 ¡Doble seis! Hoy te quiere la Virgen', 2600); confetti(40); }
   function party() {
     document.body.classList.toggle('fiesta');
     Sfx.play('party'); confetti(80);
@@ -531,7 +594,8 @@
     $('#btnOffline').onclick = () => { Sfx.play('click'); go('levels'); };
     $('#btnOnline').onclick = () => { Sfx.play('click'); openLobby(); };
     $('#btnRoll').onclick = () => { if (G.s && G.s.phase === 'roll' && isMine(G.s.turn)) { clearTimers(); doRoll(); } };
-    $('#dice').onclick = () => $('#btnRoll').click();
+    $('#dice1').onclick = $('#dice2').onclick = () => $('#btnRoll').click();
+    $('#btnPause').onclick = () => { Sfx.play('click'); pauseGame(); };
     $('#btnExit').onclick = () => modal('<div class="em">🚪</div><h3>¿Salir de la partida?</h3><p>Se perderá el progreso de esta partida.</p>',
       [{ text: 'Seguir jugando', cls: 'green' }, { text: 'Salir', cls: 'red', fn: () => { leaveRoom(); go('home'); } }]);
     $('#btnAgain').onclick = () => { Sfx.play('click'); if (G.mode === 'online') openLobby(); else go('levels'); };
@@ -548,7 +612,10 @@
         modal('<div class="em">☕</div><h3>¡Tinto gratis!</h3><p>Descubriste el huevo de pascua del café. Que no se enfríe, parce.</p>', [{ text: '¡Gracias!', cls: 'yellow' }]); renderCredits(); }
     };
 
-    document.addEventListener('visibilitychange', () => { if (document.hidden) Sfx.stopMusic(); else if (Store.d.music) Sfx.startMusic(); });
+    document.addEventListener('visibilitychange', () => {
+      if (document.hidden) { Sfx.stopMusic(); pauseGame(); }     // al salir de la app, la partida offline se pausa sola
+      else if (Store.d.music) Sfx.startMusic();
+    });
     renderHome();
   }
   init();

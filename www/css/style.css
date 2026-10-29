@@ -231,3 +231,17 @@ input { width: 100%; font: inherit; font-size: 18px; padding: 12px 14px; border-
 
 /* Fondo del tablero con motivos colombianos (se ve en las esquinas, alrededor de las cárceles) */
 .board { background: #fff1cf url('../assets/img/fondo-tablero.svg') center / 66px 66px; }
+
+/* Dos dados, selector de dado/suma, pausa y número de fichas */
+.dice-pair { display: flex; gap: 8px; }
+.dice { width: 56px; height: 56px; padding: 7px; border-radius: 12px; }
+.dice.used { opacity: .3; filter: grayscale(1); transform: scale(.92); }
+.pick { display: flex; gap: 8px; justify-content: center; }
+.pk { border: 0; border-radius: 14px; padding: 6px 14px; font-weight: 800; font-size: 15px; font-family: inherit; background: rgba(255,255,255,.18); color: #fff;
+  box-shadow: 0 3px 0 rgba(0,0,0,.25); cursor: pointer; }
+.pk.sel { background: var(--yellow); color: #3a2f00; box-shadow: 0 0 0 3px #fff, 0 0 12px rgba(252,209,22,.8); }
+.tok-pick { display: flex; gap: 10px; }
+.tp { width: 54px; height: 54px; border-radius: 50%; border: 4px solid transparent; font-weight: 900; font-size: 22px; font-family: inherit; color: #fff;
+  background: rgba(255,255,255,.18); box-shadow: 0 4px 0 rgba(0,0,0,.25); cursor: pointer; }
+.tp.sel { background: var(--yellow); color: #3a2f00; border-color: #fff; transform: scale(1.1); }
+#lobbyTok { display: flex; flex-direction: column; align-items: center; gap: 6px; }

@@ -58,6 +58,8 @@
     <header class="top"><button class="icon" data-go="home">⬅️</button><h2>Elige tu reto</h2><span></span></header>
     <p class="sub">Escoge tu región (tu color)</p>
     <div class="region-pick" id="regionPick"></div>
+    <p class="sub">¿Con cuántas fichas quieres jugar?</p>
+    <div class="tok-pick" id="tokPick"></div>
     <div class="levels" id="levelList"></div>
   </section>
 
@@ -80,6 +82,7 @@
       <p class="sub">Comparte este código con tus amigos</p>
       <div class="code" id="roomCode">----</div>
       <ul class="seats" id="seatList"></ul>
+      <div id="lobbyTok" class="hidden"><p class="sub">Fichas por jugador</p><div class="tok-pick" id="tokPickLobby"></div></div>
       <p class="sub small">Los puestos vacíos los juegan bots.</p>
       <button class="btn big yellow" id="btnStart">▶️ Empezar partida</button>
       <p id="waitHost" class="sub hidden">Esperando a que el anfitrión empiece…</p>
@@ -89,15 +92,16 @@
   <!-- 3. JUEGO -->
   <section id="game" class="screen">
     <header class="top game-top">
-      <button class="icon" id="btnExit">✖️</button>
+      <span class="top-actions"><button class="icon" id="btnPause" title="Pausar">⏸️</button><button class="icon" id="btnExit" title="Salir">✖️</button></span>
       <div id="gameTitle" class="gtitle"></div>
       <span class="top-actions"><button class="icon" id="btnMusic3" title="Música">🎵</button><button class="icon" id="btnSound2" title="Sonido">🔊</button></span>
     </header>
     <div class="board-wrap"><div class="board" id="board"></div></div>
     <div id="msg" class="msg"></div>
+    <div id="pick" class="pick hidden"></div>
     <div class="tbar"><i id="tbar"></i></div>
     <div class="controls">
-      <div id="dice" class="dice"></div>
+      <div class="dice-pair"><div id="dice1" class="dice"></div><div id="dice2" class="dice"></div></div>
       <button class="btn big yellow" id="btnRoll">🎲 Lanzar</button>
     </div>
   </section>

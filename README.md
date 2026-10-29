@@ -48,10 +48,13 @@ Sube el `.aab` en Google Play Console (cuenta de desarrollador, ficha de tienda,
 
 ## Reglas implementadas
 
-- 4 fichas por jugador, un dado. **Con un 5 sale una ficha** de la cárcel.
-- Un 6, una captura o llegar a la meta dan **turno extra** (tres 6 seguidos lo anulan).
-- Si caes en una casilla de otro jugador que no sea segura (⭐ o salidas), **lo mandas a la cárcel**.
+- De 1 a 4 fichas por jugador (se elige al empezar) y **dos dados**. Cada dado se juega por separado con una ficha, o se **suman** para mover una sola.
+- **Con un 5** (en un dado o en la suma) sale una ficha de la cárcel, a su casilla SALIDA.
+- **El turno se repite solo si salen dos dados iguales (par).** Capturar o llegar a la meta no lo repiten.
+- **Tres pares seguidos:** el jugador saca del juego una ficha, como si hubiera llegado a la LLEGADA, y pasa el turno.
+- Si caes en una casilla de otro jugador que no sea SEGURO (punta del brazo, SALIDA o el SEGURO lateral), **lo mandas a la cárcel**.
 - Para entrar a la meta se necesita la tirada exacta.
+- Offline: botón ⏸️ para pausar (la partida también se pausa sola si sales de la app).
 
 ## Pendiente del equipo
 

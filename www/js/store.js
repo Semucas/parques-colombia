@@ -2,7 +2,7 @@
 const Store = (() => {
   const KEY = 'parques_parce_v2';
   const DEFAULTS = {
-    name: '', region: 0, sound: true, music: true,
+    name: '', region: 0, tokens: 4, sound: true, music: true,
     unlocked: 1, scores: [], stats: { games: 0, wins: 0, captures: 0 }, eggs: {}
   };
   let d;
