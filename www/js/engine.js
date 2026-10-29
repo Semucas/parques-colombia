@@ -6,11 +6,11 @@
 const Engine = (() => {
   const TRACK = 68;                  // casillas del circuito
   // Brazos (índice absoluto de sus 17 casillas): 0 arriba = 0..16, 1 derecha = 17..33, 2 abajo = 34..50, 3 izquierda = 51..67.
-  // Caribe usa el brazo de abajo, Pacífico el de la izquierda, Andina el de arriba y Amazonía el de la derecha.
-  const STARTS = [37, 54, 3, 20];   // casilla SALIDA de cada jugador: 5.ª casilla de su brazo, en el lado opuesto a su cárcel
+  // Caribe usa el brazo de arriba, Pacífico el de la derecha, Andina el de abajo y Amazonía el de la izquierda.
+  const STARTS = [3, 20, 37, 54];   // casilla SALIDA de cada jugador: 5.ª casilla de su brazo
   const LAST = 63;                   // última casilla del circuito (la punta de su brazo); después entra al pasillo
   const GOAL = LAST + 8;             // posición relativa de la meta (LAST+1 .. LAST+7 es el pasillo de llegada)
-  const MOUTHS = [42, 59, 8, 25];   // punta del brazo de cada jugador (entrada a su pasillo): casilla "seguro"
+  const MOUTHS = [8, 25, 42, 59];   // punta del brazo de cada jugador (entrada a su pasillo): casilla "seguro"
   const SIDE_SAFES = [13, 30, 47, 64]; // 5.ª casilla del lado de la cárcel de cada brazo: también "seguro"
   const SAFE = new Set([...STARTS, ...MOUTHS, ...SIDE_SAFES]);
 

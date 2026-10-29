@@ -150,7 +150,7 @@ input { width: 100%; font: inherit; font-size: 18px; padding: 12px 14px; border-
 .jail .je { position: relative; font-size: 22px; line-height: 1; }
 .jail b { position: relative; font-size: 9px; color: #fff; text-shadow: 0 1px 2px rgba(0,0,0,.6); }
 .jail.light b { color: #2b2300; text-shadow: none; }
-.center { background: conic-gradient(from 315deg, var(--p2) 0 25%, var(--p3) 0 50%, var(--p0) 0 75%, var(--p1) 0); border: 3px solid #fff; border-radius: 6px; }
+.center { background: conic-gradient(from 315deg, var(--p0) 0 25%, var(--p1) 0 50%, var(--p2) 0 75%, var(--p3) 0); border: 3px solid #fff; border-radius: 6px; }
 .plate { position: absolute; border-radius: 50%; background: rgba(255,255,255,.4); border: 3px dashed rgba(0,0,0,.25); }
 .hat { position: absolute; z-index: 2; pointer-events: none; display: flex; align-items: center; justify-content: center; }
 .hat img { width: 100%; height: 100%; object-fit: contain; filter: drop-shadow(0 2px 2px rgba(0,0,0,.45)); }
@@ -247,7 +247,6 @@ input { width: 100%; font: inherit; font-size: 18px; padding: 12px 14px; border-
 #lobbyTok { display: flex; flex-direction: column; align-items: center; gap: 6px; }
 
 /* Turno actual: la esquina del jugador brilla y pulsa, las demás se atenúan */
-.board.has-turn .jail:not(.active) { filter: brightness(.68) saturate(.75); }
 .jail { transition: filter .35s, transform .35s; }
 .jail.active { transform: scale(1.05); filter: brightness(1.12); z-index: 2;
   box-shadow: 0 0 0 4px #fff, 0 0 24px 8px var(--c); animation: turnGlow 1s ease-in-out infinite; }
@@ -276,3 +275,7 @@ input { width: 100%; font: inherit; font-size: 18px; padding: 12px 14px; border-
 /* Tablero sobrio: casillas blancas, seguros grises; el color solo en esquinas, salida, pasillo y fin */
 .cell.safe { background: #d6d6d6; }
 .cell.goal .lbl { font-size: 8.5px; letter-spacing: .6px; opacity: 1; }
+
+/* Todas las esquinas con su color vivo (sin oscurecer); el turno se marca con el borde y el brillo */
+.jail { filter: brightness(1.1); }
+.jail.active { filter: brightness(1.1); }

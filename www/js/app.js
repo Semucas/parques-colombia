@@ -24,7 +24,7 @@
   const unitStart = g => g <= 8 ? g : g <= 10 ? 8 + (g - 8) * 2 : 14 + (g - 11);
   const unitSpan = g => g >= 8 && g <= 10 ? 2 : 1;
   const cellRect = (gx, gy) => ({ x: unitStart(gx), y: unitStart(gy), w: unitSpan(gx), h: unitSpan(gy) });
-  // Pasillos y metas por BRAZO (arriba, derecha, abajo, izquierda); cada jugador usa el brazo opuesto al de su número
+  // Pasillos y metas por BRAZO (arriba, derecha, abajo, izquierda)
   const ARM_LANES = [
     [1, 2, 3, 4, 5, 6, 7].map(y => [9, y]),
     [17, 16, 15, 14, 13, 12, 11].map(x => [x, 9]),
@@ -32,10 +32,10 @@
     [1, 2, 3, 4, 5, 6, 7].map(x => [x, 9])
   ];
   const ARM_GOALS = [[9, 8], [10, 9], [9, 10], [8, 9]];
-  const ARM_OF = [2, 3, 0, 1];                                   // brazo de cada jugador: Caribe abajo, Pacífico izquierda, Andina arriba, Amazonía derecha
+  const ARM_OF = [0, 1, 2, 3];                                   // brazo de cada jugador: Caribe arriba, Pacífico derecha, Andina abajo, Amazonía izquierda
   const LANES = ARM_OF.map(a => ARM_LANES[a]);
   const GOALS = ARM_OF.map(a => ARM_GOALS[a]);
-  const JAILS = [[0, 14], [0, 0], [14, 0], [14, 14]];           // esquina de cada cárcel (cada una junto a su brazo), 8x8
+  const JAILS = [[0, 14], [0, 0], [14, 0], [14, 14]];           // esquina de cada cárcel: Caribe abajo-izq., Pacífico arriba-izq., Andina arriba-der., Amazonía abajo-der. (8x8)
   const SLOT_LAYOUT = { 1: [[0, 0]], 2: [[-1, 0], [1, 0]], 3: [[-1, -1], [1, -1], [0, 1]], 4: [[-1, -1], [1, -1], [-1, 1], [1, 1]] };
   const slotsOf = () => SLOT_LAYOUT[(G.s && G.s.n) || 4];
   // La cárcel es un cuadrado de 6.2 unidades pegado a la esquina exterior; el nombre va arriba (esquinas de arriba) o abajo
