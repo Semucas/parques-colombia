@@ -1,0 +1,8 @@
+Música de fondo del juego: guarda aquí la canción como  musica.mp3
+
+- Se reproduce en bucle a volumen bajo (25%). Se apaga con el botón 🎵 de Inicio.
+- Si no existe el archivo, el juego usa una cumbia sintetizada por código.
+- IMPORTANTE (Google Play): "Colombia, tierra querida" (Lucho Bermúdez) tiene derechos de autor.
+  Para publicar usa una pista libre de regalías / licencia Creative Commons (cumbia, porro, música andina)
+  o una versión con licencia. Cita al autor y la licencia en la pantalla de Créditos.
+- Peso recomendado: menos de 3 MB (mp3 128 kbps).

@@ -1,0 +1,8 @@
+Coloca aquí las fotos de cada región (JPG, ~800x600, livianas):
+  caribe.jpg     (ej. Cartagena, Tayrona)
+  pacifico.jpg   (ej. ballenas en Nuquí)
+  andina.jpg     (ej. Valle del Cocora, paisaje cafetero)
+  amazonia.jpg   (ej. Leticia, río Amazonas)
+
+Si el archivo no existe, la app muestra solo el emoji de la región (no se rompe).
+Cita el autor/fuente de cada foto en la pantalla de Créditos (www/index.html).

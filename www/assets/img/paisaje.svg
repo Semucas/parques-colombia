@@ -1,0 +1,26 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 600 260" preserveAspectRatio="xMidYMax slice">
+  <defs>
+    <g id="palma">
+      <rect x="-2.6" y="-110" width="5.2" height="110" rx="2.6" fill="#e6d8b0"/>
+      <rect x="-2.6" y="-110" width="5.2" height="110" rx="2.6" fill="none" stroke="#b9a875" stroke-width=".8"/>
+      <g fill="#0c5a30">
+        <path d="M0 -110 Q-30 -118 -50 -94 Q-24 -108 0 -110Z"/>
+        <path d="M0 -110 Q30 -118 50 -94 Q24 -108 0 -110Z"/>
+        <path d="M0 -110 Q-20 -138 -38 -136 Q-14 -124 0 -110Z"/>
+        <path d="M0 -110 Q20 -138 38 -136 Q14 -124 0 -110Z"/>
+        <path d="M0 -110 Q-3 -138 0 -150 Q5 -132 0 -110Z"/>
+      </g>
+    </g>
+  </defs>
+  <circle cx="478" cy="86" r="62" fill="#FCD116" opacity=".25"/>
+  <circle cx="478" cy="86" r="42" fill="#FCD116" opacity=".95"/>
+  <path d="M0 260 V150 L60 112 L110 142 L172 78 L240 132 L300 96 L372 142 L432 106 L500 152 L560 120 L600 140 V260Z" fill="#2c64bd" opacity=".75"/>
+  <path d="M0 260 V190 Q80 138 160 186 T320 176 T480 182 T600 166 V260Z" fill="#1e8f4e"/>
+  <use href="#palma" transform="translate(90 214) scale(.9)"/>
+  <use href="#palma" transform="translate(140 222) scale(.65)"/>
+  <use href="#palma" transform="translate(395 208) scale(1.05)"/>
+  <use href="#palma" transform="translate(445 216) scale(.7)"/>
+  <path d="M0 260 V222 Q100 192 200 224 T400 216 T600 206 V260Z" fill="#0f6b3a"/>
+  <use href="#palma" transform="translate(255 236) scale(.55)"/>
+  <use href="#palma" transform="translate(540 232) scale(.6)"/>
+</svg>
