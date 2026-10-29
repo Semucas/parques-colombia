@@ -56,10 +56,11 @@
   const GOALS = ARM_OF.map(a => ARM_GOALS[a]);
   const JAILS = [[0, 14], [0, 0], [14, 0], [14, 14]];           // esquina de cada cárcel: Caribe abajo-izq., Pacífico arriba-izq., Andina arriba-der., Amazonía abajo-der. (8x8)
   const SLOT_LAYOUT = { 1: [[0, 0]], 2: [[-1, 0], [1, 0]], 3: [[-1, -1], [1, -1], [0, 1]], 4: [[-1, -1], [1, -1], [-1, 1], [1, 1]] };
-  const slotsOf = () => SLOT_LAYOUT[(G.s && G.s.n) || 4];
+  const SLOT_K = 1.3, SLOT_SIZE = 1.7;   // separación y tamaño de los huecos de las fichas
+  const slotsOf = () => SLOT_LAYOUT[(G.s && G.s.n) || 4].map(([dx, dy]) => [dx * SLOT_K, dy * SLOT_K]);
   // La cárcel es un cuadrado de 6.2 unidades pegado a la esquina exterior; el nombre va arriba (esquinas de arriba) o abajo
-  const JS = 6.2;
-  const JAIL_RECT = JAILS.map(([x, y]) => ({ x: x + (x > 0 ? 8 - JS - .25 : .25), y: y + (y > 0 ? 8 - JS - .25 : .25) }));
+  const JS = 8;   // la tarjeta de cada jugador llena toda su esquina (8x8)
+  const JAIL_RECT = JAILS.map(([x, y]) => ({ x, y }));
   const JAIL_C = JAIL_RECT.map((r, p) => [r.x + JS / 2, r.y + JS / 2 + (JAILS[p][1] === 0 ? .95 : -.95)]);   // centro del área de fichas
   const TINTS = ['rgba(252,209,22,.5)', 'rgba(30,111,224,.38)', 'rgba(224,49,70,.38)', 'rgba(34,177,98,.4)'];
 
@@ -203,11 +204,11 @@
     // Esquinas: cárcel de cada región con su emoji/foto y un plato para las 4 fichas
     G.jailEls = [];
     JAILS.forEach(([x, y], p) => {
-      const r = REGIONS[p], top = y === 0, jr = JAIL_RECT[p];
-      const jail = mk('jail' + (r.light ? ' light' : ''),
+      const r = REGIONS[p], top = y === 0, jr = JAIL_RECT[p], corner = (top ? 't' : 'b') + (x === 0 ? 'l' : 'r');
+      const jail = mk('jail ' + corner + (r.light ? ' light' : ''),
         `${sceneImg(p)}<div class="ptag ${top ? 'top' : 'bot'}"><span class="pe">${(G.s.players[p] && G.s.players[p].emoji) || r.emoji}</span><b class="pn"></b></div>`, r.color);
       place(jail, jr.x, jr.y, JS, JS);
-      slotsOf().forEach(([dx, dy]) => place(mk('slot'), JAIL_C[p][0] + dx - .75, JAIL_C[p][1] + dy - .75 / ASPECT, 1.5, 1.5 / ASPECT));   // huecos de las 4 fichas
+      slotsOf().forEach(([dx, dy]) => place(mk('slot'), JAIL_C[p][0] + dx - SLOT_SIZE / 2, JAIL_C[p][1] + dy - SLOT_SIZE / 2 / ASPECT, SLOT_SIZE, SLOT_SIZE / ASPECT));   // huecos de las 4 fichas
       G.jailEls[p] = jail;
     });
     // Centro: círculo de cielo con el sombrero vueltiao
@@ -289,7 +290,7 @@
       const base = (pl.name || '').replace(/^Bot /, '');
       const nm = base + (p === G.mySeat ? (base.length <= 8 ? ' (tú)' : ' ★') : '');   // marca de "eres tú", corta si el nombre es largo
       const pn = $('.pn', j); pn.textContent = nm;
-      pn.style.fontSize = nm.length > 14 ? '7.5px' : nm.length > 10 ? '9px' : '';   // nombres largos: letra más chica para que quepan
+      pn.style.fontSize = nm.length > 12 ? '7.5px' : nm.length > 9 ? '9px' : '';   // nombres largos: letra más chica para que quepan
     });
     $('#btnRoll').disabled = !(mine && s.phase === 'roll');
     if (!G.rolling && s.dice[0]) { setFace('#dice1', s.dice[0]); setFace('#dice2', s.dice[1]); }
