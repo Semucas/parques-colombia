@@ -24,15 +24,18 @@
   const unitStart = g => g <= 8 ? g : g <= 10 ? 8 + (g - 8) * 2 : 14 + (g - 11);
   const unitSpan = g => g >= 8 && g <= 10 ? 2 : 1;
   const cellRect = (gx, gy) => ({ x: unitStart(gx), y: unitStart(gy), w: unitSpan(gx), h: unitSpan(gy) });
-  const LANES = [
+  // Pasillos y metas por BRAZO (arriba, derecha, abajo, izquierda); cada jugador usa el brazo opuesto al de su número
+  const ARM_LANES = [
     [1, 2, 3, 4, 5, 6, 7].map(y => [9, y]),
     [17, 16, 15, 14, 13, 12, 11].map(x => [x, 9]),
     [17, 16, 15, 14, 13, 12, 11].map(y => [9, y]),
     [1, 2, 3, 4, 5, 6, 7].map(x => [x, 9])
   ];
-  const GOALS = [[9, 8], [10, 9], [9, 10], [8, 9]];             // casilla de meta de cada jugador, alrededor del centro
-  const JAILS = [[14, 0], [14, 14], [0, 14], [0, 0]];          // esquina (en unidades) de cada cárcel, 8x8
-  // posiciones de las fichas dentro de la cárcel según cuántas fichas se juegan (1 a 4)
+  const ARM_GOALS = [[9, 8], [10, 9], [9, 10], [8, 9]];
+  const ARM_OF = [2, 3, 0, 1];                                   // brazo de cada jugador: Caribe abajo, Pacífico izquierda, Andina arriba, Amazonía derecha
+  const LANES = ARM_OF.map(a => ARM_LANES[a]);
+  const GOALS = ARM_OF.map(a => ARM_GOALS[a]);
+  const JAILS = [[0, 14], [0, 0], [14, 0], [14, 14]];           // esquina de cada cárcel (cada una junto a su brazo), 8x8
   const SLOT_LAYOUT = { 1: [[0, 0]], 2: [[-1, 0], [1, 0]], 3: [[-1, -1], [1, -1], [0, 1]], 4: [[-1, -1], [1, -1], [-1, 1], [1, 1]] };
   const slotsOf = () => SLOT_LAYOUT[(G.s && G.s.n) || 4];
   // La cárcel es un cuadrado de 6.2 unidades pegado a la esquina exterior; el nombre va arriba (esquinas de arriba) o abajo
@@ -248,7 +251,10 @@
     s.players.forEach((pl, p) => {              // nombre, personaje y progreso en la esquina de cada jugador
       const j = G.jailEls[p];
       j.classList.toggle('active', s.turn === p && s.winner < 0);
-      $('.pn', j).textContent = (pl.name || '').replace(/^Bot /, '') + (p === G.mySeat ? ' (tú)' : '');
+      const base = (pl.name || '').replace(/^Bot /, '');
+      const nm = base + (p === G.mySeat ? (base.length <= 8 ? ' (tú)' : ' ★') : '');   // marca de "eres tú", corta si el nombre es largo
+      const pn = $('.pn', j); pn.textContent = nm;
+      pn.style.fontSize = nm.length > 14 ? '7.5px' : nm.length > 10 ? '9px' : '';   // nombres largos: letra más chica para que quepan
     });
     $('#btnRoll').disabled = !(mine && s.phase === 'roll');
     if (!G.rolling && s.dice[0]) { setFace('#dice1', s.dice[0]); setFace('#dice2', s.dice[1]); }
