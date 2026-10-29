@@ -255,3 +255,11 @@ input { width: 100%; font: inherit; font-size: 18px; padding: 12px 14px; border-
 .jail.active .ptag { background: #fff; color: #222; }
 .token.turn { box-shadow: 0 0 0 2px #fff, 0 0 9px 4px var(--c); }
 .jail.active .ptag .pn { color: #222; text-shadow: none; }
+
+/* Elegir dado tocándolo: el elegido brilla; el + suma los dos */
+.dice-pair { align-items: center; gap: 6px; }
+.dice.pickable { cursor: pointer; }
+.dice.sel { transform: scale(1.1); box-shadow: 0 0 0 4px var(--yellow), 0 0 16px 4px rgba(252,209,22,.9); }
+.plus { width: 34px; height: 34px; border-radius: 50%; border: 0; font-weight: 900; font-size: 22px; line-height: 1; font-family: inherit;
+  color: #fff; background: rgba(255,255,255,.25); box-shadow: 0 3px 0 rgba(0,0,0,.25); cursor: pointer; }
+.plus.sel { background: var(--yellow); color: #3a2f00; box-shadow: 0 0 0 3px #fff, 0 0 12px rgba(252,209,22,.9); }
