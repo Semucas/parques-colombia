@@ -62,4 +62,12 @@
     };
   }
   window.firebase = { initializeApp() {}, database: () => ({ ref }) };
+
+  // Aviso visible: en este modo las salas NO existen en Firebase, solo en este navegador
+  window.addEventListener('DOMContentLoaded', () => {
+    const b = document.createElement('div');
+    b.textContent = 'MODO DE PRUEBA: las salas no son de Firebase';
+    b.style.cssText = 'position:fixed;left:0;right:0;bottom:0;z-index:9999;background:#CE1126;color:#fff;font:700 12px sans-serif;text-align:center;padding:4px;pointer-events:none';
+    document.body.appendChild(b);
+  });
 })();
